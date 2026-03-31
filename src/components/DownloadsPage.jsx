@@ -1,12 +1,10 @@
 const RELEASES = [
   {
     version: 'v1.0.0',
-    date: 'March 21, 2026',
-    downloadUrl: '#',
+    date: 'March 31, 2026',
+    downloadUrl: 'https://github.com/ChrissyKins/chris-upr/releases/download/v1.0.0/ChrisUPR.zip',
     changelog: [
-      'Initial release of Custom Pokemon Randomizer',
-      'Custom wild encounter file support',
-      'Web-based encounter editor',
+      'Initial release - supports customising encounters/trainers for Pokemon Crystal',
     ],
   },
 ];
