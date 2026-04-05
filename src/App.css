@@ -597,3 +597,234 @@ hr {
     width: 100%;
   }
 }
+
+/* ── Editor Tabs ── */
+
+.editor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.editor-tab {
+  font-size: 0.85em;
+  padding: 2px 8px;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  color: #333;
+  background: #f0f0f0;
+}
+
+.editor-tab.active {
+  font-weight: bold;
+  border-color: #333;
+  background: #ddd;
+  text-decoration: none;
+}
+
+.editor-tab:hover {
+  background: #e0e0e0;
+}
+
+/* ── Extra Editors (TMs, Tutors, Trades, etc.) ── */
+
+.extra-editor {
+  margin-top: 8px;
+}
+
+.extra-editor-header {
+  margin-bottom: 4px;
+}
+
+.extra-search {
+  width: 300px;
+  padding: 2px 4px;
+  margin-bottom: 8px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.extra-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+
+.extra-table th {
+  text-align: left;
+  border-bottom: 1px solid #999;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  color: #666;
+}
+
+.extra-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid #eee;
+}
+
+.extra-table .col-label {
+  font-weight: bold;
+  white-space: nowrap;
+  width: 60px;
+}
+
+.extra-table .col-num {
+  text-align: center;
+  width: 50px;
+}
+
+.extra-table .row-changed {
+  background: #fffde0;
+}
+
+.inline-picker {
+  display: inline-block;
+}
+
+.inline-picker .move-picker-display {
+  min-width: 120px;
+}
+
+/* ── Trade Editor ── */
+
+.trades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trade-row {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+}
+
+.trade-header {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.trade-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.trade-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trade-label {
+  font-weight: bold;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.trade-input {
+  width: 80px;
+  padding: 1px 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+/* ── Shop Editor ── */
+
+.shops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-row {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+}
+
+.shop-header {
+  margin-bottom: 4px;
+}
+
+.shop-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Learnset / Stats / Evolution Editors ── */
+
+.learnset-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.edited-list {
+  font-size: 0.85em;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.stats-table input.stat-input {
+  width: 45px;
+  text-align: center;
+  padding: 1px 2px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.type-select {
+  padding: 1px 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.type-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.pokemon-edit-panel {
+  margin-top: 8px;
+}
+
+.stats-edit-section {
+  margin-top: 4px;
+}
+
+/* ── Evolution Editor ── */
+
+.evo-row {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+}
+
+.evo-row.row-changed {
+  background: #fffde0;
+}
+
+.evo-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.evo-detail {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 2px;
+}

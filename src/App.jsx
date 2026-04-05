@@ -2,17 +2,25 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import LocationCarousel from './components/LocationCarousel';
 import DownloadsPage from './components/DownloadsPage';
 import FindReplace from './components/FindReplace';
+import TMEditor, { getDefaultTMs } from './components/TMEditor';
+import MoveTutorEditor, { getDefaultMoveTutors } from './components/MoveTutorEditor';
+import TradeEditor, { getDefaultTrades } from './components/TradeEditor';
+import ShopEditor, { getDefaultShops } from './components/ShopEditor';
+import FieldItemEditor, { getDefaultFieldItems } from './components/FieldItemEditor';
+import LearnsetEditor from './components/LearnsetEditor';
+import PokemonStatsEditor from './components/PokemonStatsEditor';
+import EvolutionEditor from './components/EvolutionEditor';
 import { exportJSON, parseJSON } from './data/templateParser';
 import { getDefaultCrystalEncounters, getDefaultSlotsForArea, getDefaultCrystalTrainers } from './data/crystalEncounters';
 import { ALL_TYPES } from './data/pokemonFilters';
 import { PokemonFilterContext } from './data/pokemonFilterContext';
-import { pushState, undo, canUndo } from './data/undoHistory';
+import { pushState, undo } from './data/undoHistory';
 import { POKEMON_BY_NAME } from './data/pokemon';
 import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 2; // v2: collapsed time-of-day
+const SAVE_VERSION = 3; // v3: extra editors
 
 function loadSavedState() {
   try {
@@ -32,18 +40,31 @@ function loadSavedState() {
         }
         return a;
       });
-      saved.version = 2;
     }
+    // v3: extras are stored alongside
+    saved.version = SAVE_VERSION;
     return saved;
-  } catch (e) { /* ignore corrupt data */ }
+  } catch (_) { /* ignore corrupt data */ }
   return null;
 }
 
-function saveState(areas, trainers) {
+function saveState(areas, trainers, extras) {
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ areas, trainers, version: SAVE_VERSION }));
-  } catch (e) { /* storage full, ignore */ }
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ areas, trainers, extras, version: SAVE_VERSION }));
+  } catch (_) { /* storage full, ignore */ }
 }
+
+const EDITOR_TABS = [
+  { id: 'encounters', label: 'Encounters / Trainers' },
+  { id: 'tms', label: 'TMs' },
+  { id: 'tutors', label: 'Move Tutors' },
+  { id: 'trades', label: 'Trades' },
+  { id: 'shops', label: 'Shops' },
+  { id: 'fieldItems', label: 'Field Items' },
+  { id: 'learnsets', label: 'Learnsets' },
+  { id: 'stats', label: 'Stats / Types' },
+  { id: 'evolutions', label: 'Evolutions' },
+];
 
 function App() {
   const [areas, setAreas] = useState(() => {
@@ -54,8 +75,13 @@ function App() {
     const saved = loadSavedState();
     return saved ? saved.trainers : getDefaultCrystalTrainers();
   });
+  const [extras, setExtras] = useState(() => {
+    const saved = loadSavedState();
+    return saved?.extras || {};
+  });
   const [fileName, setFileName] = useState('custom_encounters.json');
   const [page, setPage] = useState('home');
+  const [editorTab, setEditorTab] = useState('encounters');
   const isInitial = useRef(true);
 
   // Update browser title based on page
@@ -79,9 +105,9 @@ function App() {
       isInitial.current = false;
       return;
     }
-    saveState(areas, trainers);
+    saveState(areas, trainers, extras);
     pushState(areas, trainers);
-  }, [areas, trainers]);
+  }, [areas, trainers, extras]);
 
   // Ctrl+Z handler
   useEffect(() => {
@@ -94,7 +120,7 @@ function App() {
           isInitial.current = true; // prevent double-push
           setAreas(prev.areas);
           setTrainers(prev.trainers);
-          saveState(prev.areas, prev.trainers);
+          saveState(prev.areas, prev.trainers, extras);
           // Reset flag after state settles
           setTimeout(() => { isInitial.current = false; }, 0);
         }
@@ -102,7 +128,7 @@ function App() {
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [extras]);
 
   // Global filters
   const [filterTypes, setFilterTypes] = useState([]);
@@ -131,9 +157,12 @@ function App() {
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const { areas: parsedAreas, trainers: parsedTrainers } = parseJSON(ev.target.result);
+      const { areas: parsedAreas, trainers: parsedTrainers, extras: parsedExtras } = parseJSON(ev.target.result);
       if (parsedAreas.length > 0) setAreas(parsedAreas);
       if (parsedTrainers.length > 0) setTrainers(parsedTrainers);
+      if (parsedExtras && Object.keys(parsedExtras).length > 0) {
+        setExtras(prev => ({ ...prev, ...parsedExtras }));
+      }
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -141,7 +170,7 @@ function App() {
 
   function handleExport() {
     if (!areas) return;
-    const json = exportJSON(areas, trainers);
+    const json = exportJSON(areas, trainers, extras);
     const text = JSON.stringify(json, null, 2);
     const blob = new Blob([text], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -195,6 +224,7 @@ function App() {
     localStorage.removeItem(SAVE_KEY);
     setAreas(getDefaultCrystalEncounters());
     setTrainers(getDefaultCrystalTrainers());
+    setExtras({});
   }
 
   function handleFindReplace(findName, replaceName, inEncounters, inTrainers) {
@@ -246,6 +276,15 @@ function App() {
         }),
       })));
     }
+  }
+
+  // Extra editor state helpers
+  function getExtraState(key, defaultFn) {
+    return extras[key] || defaultFn();
+  }
+
+  function setExtraState(key, value) {
+    setExtras(prev => ({ ...prev, [key]: value }));
   }
 
   const nav = (
@@ -303,7 +342,7 @@ function App() {
   return (
     <PokemonFilterContext.Provider value={filters}>
       <div className="app">
-        <h1>Pokemon Crystal - Encounter / Trainer Editor</h1>
+        <h1>Pokemon Crystal - Custom Editor</h1>
         {nav}
         <hr />
 
@@ -322,91 +361,164 @@ function App() {
 
         <hr />
 
-        <div className="toolbar">
-          <div className="toolbar-right">
-            <FindReplace areas={areas} trainers={trainers} onReplace={handleFindReplace} onRandomizeAll={handleRandomizeAll} />
-          </div>
+        <div className="editor-tabs">
+          {EDITOR_TABS.map(tab => (
+            <a
+              key={tab.id}
+              href="#"
+              className={`editor-tab ${editorTab === tab.id ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setEditorTab(tab.id); }}
+            >{tab.label}</a>
+          ))}
         </div>
 
         <hr />
 
-        <div className="global-filters">
-          <div className="filter-row">
-            <span className="filter-label">Type:</span>
-            {ALL_TYPES.map(t => (
-              <a
-                key={t}
-                href="#"
-                className={`type-filter-btn ${filterTypes.includes(t) ? 'active' : ''}`}
-                data-type={t.toLowerCase()}
-                onClick={(e) => { e.preventDefault(); toggleType(t); }}
-              >{t.charAt(0) + t.slice(1).toLowerCase()}</a>
-            ))}
-          </div>
-          <div className="filter-row">
-            <span className="filter-label">Stage:</span>
-            {[['any', 'Any'], ['1', 'Basic'], ['2', 'Stage 2'], ['3', 'Stage 3']].map(([val, label]) => (
-              <a
-                key={val}
-                href="#"
-                className={`filter-btn ${filterStage === val ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); setFilterStage(val); }}
-              >{label}</a>
-            ))}
-            <span className="filter-label" style={{ marginLeft: 12 }}>Evolved:</span>
-            {[['any', 'Any'], ['fully', 'Fully Evolved'], ['not_fully', 'Not Fully Evolved']].map(([val, label]) => (
-              <a
-                key={val}
-                href="#"
-                className={`filter-btn ${filterEvolved === val ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); setFilterEvolved(val); }}
-              >{label}</a>
-            ))}
-            <span className="filter-label" style={{ marginLeft: 12 }}>Legendary:</span>
-            {[['any', 'Any'], ['none', 'None'], ['only', 'Only']].map(([val, label]) => (
-              <a
-                key={val}
-                href="#"
-                className={`filter-btn ${filterLegendary === val ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); setFilterLegendary(val); }}
-              >{label}</a>
-            ))}
-          </div>
-          <div className="filter-row">
-            <span className="filter-label">BST:</span>
-            {BST_RANGES.map(r => (
-              <a
-                key={r.label}
-                href="#"
-                className={`filter-btn ${filterBstRanges.some(b => b.label === r.label) ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); toggleBstRange(r); }}
-              >{r.label}</a>
-            ))}
-            {hasFilters && (
-              <>
-                {' | '}
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setFilterTypes([]);
-                  setFilterStage('any');
-                  setFilterLegendary('any');
-                  setFilterEvolved('any');
-                  setFilterBstRanges([]);
-                }}>[Clear Filters]</a>
-              </>
-            )}
-          </div>
-        </div>
+        {editorTab === 'encounters' && (
+          <>
+            <div className="toolbar">
+              <div className="toolbar-right">
+                <FindReplace areas={areas} trainers={trainers} onReplace={handleFindReplace} onRandomizeAll={handleRandomizeAll} />
+              </div>
+            </div>
 
-        <hr />
+            <hr />
 
-        <LocationCarousel
-          areas={areas}
-          trainers={trainers}
-          onSlotChange={handleSlotChange}
-          onResetArea={handleResetArea}
-          onTrainerPokemonChange={handleTrainerPokemonChange}
-        />
+            <div className="global-filters">
+              <div className="filter-row">
+                <span className="filter-label">Type:</span>
+                {ALL_TYPES.map(t => (
+                  <a
+                    key={t}
+                    href="#"
+                    className={`type-filter-btn ${filterTypes.includes(t) ? 'active' : ''}`}
+                    data-type={t.toLowerCase()}
+                    onClick={(e) => { e.preventDefault(); toggleType(t); }}
+                  >{t.charAt(0) + t.slice(1).toLowerCase()}</a>
+                ))}
+              </div>
+              <div className="filter-row">
+                <span className="filter-label">Stage:</span>
+                {[['any', 'Any'], ['1', 'Basic'], ['2', 'Stage 2'], ['3', 'Stage 3']].map(([val, label]) => (
+                  <a
+                    key={val}
+                    href="#"
+                    className={`filter-btn ${filterStage === val ? 'active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); setFilterStage(val); }}
+                  >{label}</a>
+                ))}
+                <span className="filter-label" style={{ marginLeft: 12 }}>Evolved:</span>
+                {[['any', 'Any'], ['fully', 'Fully Evolved'], ['not_fully', 'Not Fully Evolved']].map(([val, label]) => (
+                  <a
+                    key={val}
+                    href="#"
+                    className={`filter-btn ${filterEvolved === val ? 'active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); setFilterEvolved(val); }}
+                  >{label}</a>
+                ))}
+                <span className="filter-label" style={{ marginLeft: 12 }}>Legendary:</span>
+                {[['any', 'Any'], ['none', 'None'], ['only', 'Only']].map(([val, label]) => (
+                  <a
+                    key={val}
+                    href="#"
+                    className={`filter-btn ${filterLegendary === val ? 'active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); setFilterLegendary(val); }}
+                  >{label}</a>
+                ))}
+              </div>
+              <div className="filter-row">
+                <span className="filter-label">BST:</span>
+                {BST_RANGES.map(r => (
+                  <a
+                    key={r.label}
+                    href="#"
+                    className={`filter-btn ${filterBstRanges.some(b => b.label === r.label) ? 'active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); toggleBstRange(r); }}
+                  >{r.label}</a>
+                ))}
+                {hasFilters && (
+                  <>
+                    {' | '}
+                    <a href="#" onClick={(e) => {
+                      e.preventDefault();
+                      setFilterTypes([]);
+                      setFilterStage('any');
+                      setFilterLegendary('any');
+                      setFilterEvolved('any');
+                      setFilterBstRanges([]);
+                    }}>[Clear Filters]</a>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <hr />
+
+            <LocationCarousel
+              areas={areas}
+              trainers={trainers}
+              onSlotChange={handleSlotChange}
+              onResetArea={handleResetArea}
+              onTrainerPokemonChange={handleTrainerPokemonChange}
+            />
+          </>
+        )}
+
+        {editorTab === 'tms' && (
+          <TMEditor
+            tms={getExtraState('tms', getDefaultTMs)}
+            onChange={(val) => setExtraState('tms', val)}
+          />
+        )}
+
+        {editorTab === 'tutors' && (
+          <MoveTutorEditor
+            tutors={getExtraState('moveTutors', getDefaultMoveTutors)}
+            onChange={(val) => setExtraState('moveTutors', val)}
+          />
+        )}
+
+        {editorTab === 'trades' && (
+          <TradeEditor
+            trades={getExtraState('trades', getDefaultTrades)}
+            onChange={(val) => setExtraState('trades', val)}
+          />
+        )}
+
+        {editorTab === 'shops' && (
+          <ShopEditor
+            shops={getExtraState('shops', getDefaultShops)}
+            onChange={(val) => setExtraState('shops', val)}
+          />
+        )}
+
+        {editorTab === 'fieldItems' && (
+          <FieldItemEditor
+            fieldItems={getExtraState('fieldItems', getDefaultFieldItems)}
+            onChange={(val) => setExtraState('fieldItems', val)}
+          />
+        )}
+
+        {editorTab === 'learnsets' && (
+          <LearnsetEditor
+            learnsets={getExtraState('learnsets', () => ({}))}
+            onChange={(val) => setExtraState('learnsets', val)}
+          />
+        )}
+
+        {editorTab === 'stats' && (
+          <PokemonStatsEditor
+            edits={getExtraState('pokemonEdits', () => [])}
+            onChange={(val) => setExtraState('pokemonEdits', val)}
+          />
+        )}
+
+        {editorTab === 'evolutions' && (
+          <EvolutionEditor
+            edits={getExtraState('evolutionEdits', () => [])}
+            onChange={(val) => setExtraState('evolutionEdits', val)}
+          />
+        )}
       </div>
     </PokemonFilterContext.Provider>
   );

@@ -299,6 +299,73 @@ export function getGameStarters() {
   return _starters;
 }
 
+// ── Trades ──
+
+let _trades = null;
+
+export function getGameTrades() {
+  if (!_trades && rawData.trades) {
+    _trades = rawData.trades.map(t => ({
+      index: t.index,
+      givenPokemon: resolveRomName(t.givenPokemon),
+      givenPokemonId: t.givenPokemonId,
+      requestedPokemon: resolveRomName(t.requestedPokemon),
+      requestedPokemonId: t.requestedPokemonId,
+      nickname: t.nickname,
+      otName: t.otName,
+      item: t.item || 0,
+      itemName: t.itemName || null,
+    }));
+  }
+  return _trades || [];
+}
+
+// ── Shops ──
+
+let _shops = null;
+
+export function getGameShops() {
+  if (!_shops && rawData.shops) {
+    _shops = rawData.shops.map(s => ({
+      index: s.index,
+      name: s.name,
+      isMainGame: s.isMainGame,
+      items: (s.items || []).map(i => ({ id: i.id, name: i.name })),
+    }));
+  }
+  return _shops || [];
+}
+
+// ── Field Items ──
+
+let _fieldItems = null;
+
+export function getGameFieldItems() {
+  if (!_fieldItems && rawData.fieldItems) {
+    _fieldItems = rawData.fieldItems.map(f => ({
+      index: f.index,
+      item: f.item,
+      name: f.name,
+    }));
+  }
+  return _fieldItems || [];
+}
+
+// ── Move Tutors ──
+
+let _moveTutors = null;
+
+export function getGameMoveTutors() {
+  if (!_moveTutors && rawData.moveTutors) {
+    _moveTutors = rawData.moveTutors.map(mt => ({
+      index: mt.index,
+      move: mt.move,
+      moveId: mt.moveId,
+    }));
+  }
+  return _moveTutors || [];
+}
+
 // ── Metadata ──
 
 export const GAME_NAME = rawData.game;

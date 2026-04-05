@@ -17,7 +17,7 @@ function idToName(id) {
  * Export structured data as JSON using pokemon IDs.
  * 0 = RANDOM (let the randomizer pick).
  */
-export function exportJSON(areas, trainers) {
+export function exportJSON(areas, trainers, extras) {
   const expandedAreas = expandTimeOfDay(areas);
 
   const jsonAreas = expandedAreas.map(area => {
@@ -64,16 +64,60 @@ export function exportJSON(areas, trainers) {
     }),
   }));
 
-  return {
+  const result = {
     format: 'pokemon-crystal-custom',
-    version: 2,
+    version: 3,
     encounters: jsonAreas,
     trainers: jsonTrainers,
   };
+
+  // Include extra data sections if they have any edits
+  if (extras) {
+    if (extras.tms && extras.tms.length > 0) {
+      result.tms = extras.tms.map(tm => ({ tm: tm.tm, moveId: tm.moveId }));
+    }
+    if (extras.moveTutors && extras.moveTutors.length > 0) {
+      result.moveTutors = extras.moveTutors.map(mt => ({ index: mt.index, moveId: mt.moveId }));
+    }
+    if (extras.trades && extras.trades.length > 0) {
+      result.trades = extras.trades.map(t => ({
+        index: t.index,
+        givenPokemon: nameToId(t.givenPokemon),
+        requestedPokemon: nameToId(t.requestedPokemon),
+        nickname: t.nickname || undefined,
+        otName: t.otName || undefined,
+        item: t.item || undefined,
+      }));
+    }
+    if (extras.shops && extras.shops.length > 0) {
+      result.shops = extras.shops.map(s => ({
+        index: s.index,
+        name: s.name || undefined,
+        items: s.items,
+      }));
+    }
+    if (extras.fieldItems && extras.fieldItems.length > 0) {
+      result.fieldItems = extras.fieldItems.map(f => ({
+        index: f.index,
+        item: f.item,
+      }));
+    }
+    if (extras.learnsets && Object.keys(extras.learnsets).length > 0) {
+      result.learnsets = extras.learnsets;
+    }
+    if (extras.pokemonEdits && extras.pokemonEdits.length > 0) {
+      result.pokemonEdits = extras.pokemonEdits;
+    }
+    if (extras.evolutionEdits && extras.evolutionEdits.length > 0) {
+      result.evolutionEdits = extras.evolutionEdits;
+    }
+  }
+
+  return result;
 }
 
 /**
- * Parse a JSON object back into { areas, trainers }.
+ * Parse a JSON object back into { areas, trainers, extras }.
  * Pokemon are referenced by national dex ID; 0 = RANDOM.
  */
 export function parseJSON(json) {
@@ -126,5 +170,51 @@ export function parseJSON(json) {
     }),
   }));
 
-  return { areas, trainers };
+  // Parse extra data sections
+  const extras = {};
+
+  if (data.tms) {
+    extras.tms = data.tms.map(t => ({ tm: t.tm, moveId: t.moveId }));
+  }
+  if (data.moveTutors) {
+    extras.moveTutors = data.moveTutors.map(mt => ({ index: mt.index, moveId: mt.moveId }));
+  }
+  if (data.trades) {
+    extras.trades = data.trades.map(t => {
+      const given = idToName(t.givenPokemon);
+      const requested = idToName(t.requestedPokemon);
+      return {
+        index: t.index,
+        givenPokemon: given.name,
+        requestedPokemon: requested.name,
+        nickname: t.nickname || '',
+        otName: t.otName || '',
+        item: t.item || 0,
+      };
+    });
+  }
+  if (data.shops) {
+    extras.shops = data.shops.map(s => ({
+      index: s.index,
+      name: s.name || '',
+      items: s.items || [],
+    }));
+  }
+  if (data.fieldItems) {
+    extras.fieldItems = data.fieldItems.map(f => ({
+      index: f.index,
+      item: f.item,
+    }));
+  }
+  if (data.learnsets) {
+    extras.learnsets = data.learnsets;
+  }
+  if (data.pokemonEdits) {
+    extras.pokemonEdits = data.pokemonEdits;
+  }
+  if (data.evolutionEdits) {
+    extras.evolutionEdits = data.evolutionEdits;
+  }
+
+  return { areas, trainers, extras };
 }
