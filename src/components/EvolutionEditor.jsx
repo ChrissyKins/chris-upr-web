@@ -1,47 +1,35 @@
 import { useState } from 'react';
 import PokemonPicker from './PokemonPicker';
-import { getGameEvolutions, getGamePokemon, getGameMoves, getGameItems } from '../data/gameData';
+import { getGameEvolutions, getGamePokemon } from '../data/gameData';
 import { POKEMON_BY_NAME } from '../data/pokemon';
 
-const EVOLUTION_METHODS = [
-  'LEVEL', 'STONE', 'TRADE', 'TRADE_ITEM', 'HAPPINESS', 'HAPPINESS_DAY', 'HAPPINESS_NIGHT',
-  'LEVEL_ATTACK_HIGHER', 'LEVEL_DEFENSE_HIGHER', 'LEVEL_ATK_DEF_SAME',
-  'LEVEL_HIGH_BEAUTY', 'LEVEL_ITEM_DAY', 'LEVEL_ITEM_NIGHT',
-  'LEVEL_WITH_MOVE', 'LEVEL_WITH_OTHER',
-  'LEVEL_MALE_ONLY', 'LEVEL_FEMALE_ONLY',
+const EVOLUTION_METHODS = ['LEVEL', 'STONE', 'HAPPINESS'];
+
+const STONES = [
+  { id: 8, name: 'Moon Stone' },
+  { id: 22, name: 'Fire Stone' },
+  { id: 23, name: 'Thunderstone' },
+  { id: 24, name: 'Water Stone' },
+  { id: 34, name: 'Leaf Stone' },
+  { id: 169, name: 'Sun Stone' },
 ];
 
-// What kind of "extra" value each method expects
-function getExtraType(method) {
+function getMethodLabel(method) {
   switch (method) {
-    case 'LEVEL':
-    case 'LEVEL_ATTACK_HIGHER':
-    case 'LEVEL_DEFENSE_HIGHER':
-    case 'LEVEL_ATK_DEF_SAME':
-    case 'LEVEL_HIGH_BEAUTY':
-    case 'LEVEL_MALE_ONLY':
-    case 'LEVEL_FEMALE_ONLY':
-      return 'level';
-    case 'STONE':
-    case 'TRADE_ITEM':
-    case 'LEVEL_ITEM_DAY':
-    case 'LEVEL_ITEM_NIGHT':
-      return 'item';
-    case 'LEVEL_WITH_MOVE':
-      return 'move';
-    case 'LEVEL_WITH_OTHER':
-      return 'pokemon';
-    case 'TRADE':
-    case 'HAPPINESS':
-    case 'HAPPINESS_DAY':
-    case 'HAPPINESS_NIGHT':
-    default:
-      return 'none';
+    case 'LEVEL': return 'Level Up';
+    case 'STONE': return 'Stone';
+    case 'HAPPINESS': return 'Happiness';
+    default: return method.replace(/_/g, ' ');
   }
 }
 
-function getMethodLabel(method) {
-  return method.replace(/_/g, ' ');
+// Map all method variants to the simplified set for display
+function simplifyMethod(method) {
+  if (method.startsWith('LEVEL')) return 'LEVEL';
+  if (method === 'STONE' || method === 'STONE_MALE_ONLY' || method === 'STONE_FEMALE_ONLY') return 'STONE';
+  if (method.startsWith('HAPPINESS')) return 'HAPPINESS';
+  if (method.startsWith('TRADE')) return 'LEVEL'; // trade evos become level-based when customised
+  return 'LEVEL';
 }
 
 export default function EvolutionEditor({ edits, onChange }) {
@@ -78,6 +66,26 @@ export default function EvolutionEditor({ edits, onChange }) {
         [field]: value,
       };
       onChange([...edits, newEdit]);
+    }
+  }
+
+  function handleMethodChange(toId, newMethod) {
+    // When changing method, set a sensible default for extraInfo
+    let defaultExtra = 0;
+    if (newMethod === 'LEVEL') defaultExtra = 30;
+    else if (newMethod === 'STONE') defaultExtra = STONES[0].id;
+
+    const existing = edits.find(e => e.fromId === pokemonId && e.toId === toId);
+    if (existing) {
+      onChange(edits.map(e => (e.fromId === pokemonId && e.toId === toId) ? { ...e, method: newMethod, extraInfo: defaultExtra } : e));
+    } else {
+      const orig = originalEvos.find(o => o.toId === toId);
+      onChange([...edits, {
+        fromId: pokemonId,
+        toId,
+        method: newMethod,
+        extraInfo: defaultExtra,
+      }]);
     }
   }
 
@@ -137,7 +145,7 @@ export default function EvolutionEditor({ edits, onChange }) {
           {displayEvos.map((evo, i) => {
             const toPokemon = gamePokemon.find(p => p.id === evo.toId);
             const isCustom = edits.some(e => e.fromId === pokemonId && e.toId === evo.toId);
-            const extraType = getExtraType(evo.method);
+            const displayMethod = simplifyMethod(evo.method);
 
             return (
               <div key={i} className={`evo-row ${isCustom ? 'row-changed' : ''}`}>
@@ -151,10 +159,11 @@ export default function EvolutionEditor({ edits, onChange }) {
                   ) : (
                     <b>{toPokemon?.name || '???'}</b>
                   )}
+
                   <span className="trade-label" style={{ marginLeft: 12 }}>Method:</span>
                   <select
-                    value={evo.method}
-                    onChange={(e) => handleEvoChange(evo.toId, 'method', e.target.value)}
+                    value={displayMethod}
+                    onChange={(e) => handleMethodChange(evo.toId, e.target.value)}
                     className="type-select"
                   >
                     {EVOLUTION_METHODS.map(m => (
@@ -162,7 +171,7 @@ export default function EvolutionEditor({ edits, onChange }) {
                     ))}
                   </select>
 
-                  {extraType === 'level' && (
+                  {displayMethod === 'LEVEL' && (
                     <>
                       <span className="trade-label" style={{ marginLeft: 12 }}>Level:</span>
                       <input
@@ -179,24 +188,18 @@ export default function EvolutionEditor({ edits, onChange }) {
                     </>
                   )}
 
-                  {extraType === 'item' && (
+                  {displayMethod === 'STONE' && (
                     <>
-                      <span className="trade-label" style={{ marginLeft: 12 }}>Item:</span>
-                      <EvoItemPicker value={evo.extraInfo || 0} onChange={(id) => handleEvoChange(evo.toId, 'extraInfo', id)} />
-                    </>
-                  )}
-
-                  {extraType === 'move' && (
-                    <>
-                      <span className="trade-label" style={{ marginLeft: 12 }}>Move:</span>
-                      <EvoMovePicker value={evo.extraInfo || 0} onChange={(id) => handleEvoChange(evo.toId, 'extraInfo', id)} />
-                    </>
-                  )}
-
-                  {extraType === 'pokemon' && (
-                    <>
-                      <span className="trade-label" style={{ marginLeft: 12 }}>With:</span>
-                      <EvoPokemonPicker value={evo.extraInfo || 0} onChange={(id) => handleEvoChange(evo.toId, 'extraInfo', id)} />
+                      <span className="trade-label" style={{ marginLeft: 12 }}>Stone:</span>
+                      <select
+                        value={evo.extraInfo || STONES[0].id}
+                        onChange={(e) => handleEvoChange(evo.toId, 'extraInfo', parseInt(e.target.value))}
+                        className="type-select"
+                      >
+                        {STONES.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
                     </>
                   )}
 
@@ -214,89 +217,4 @@ export default function EvolutionEditor({ edits, onChange }) {
       )}
     </div>
   );
-}
-
-function EvoItemPicker({ value, onChange }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const items = getGameItems();
-
-  const options = search
-    ? items.filter(i => i.name.toLowerCase().includes(search.toLowerCase()))
-    : items;
-
-  const current = items.find(i => i.id === value);
-
-  return (
-    <div className="move-picker inline-picker">
-      <div className="move-picker-display" onClick={() => setIsOpen(!isOpen)}>
-        <span className="move-name">{current?.name || `Item #${value}`}</span>
-        <span className="dropdown-arrow">&#9662;</span>
-      </div>
-      {isOpen && (
-        <div className="move-dropdown">
-          <input type="text" className="pokemon-search" placeholder="Search items..."
-            value={search} onChange={e => setSearch(e.target.value)} autoFocus
-            onBlur={() => setTimeout(() => setIsOpen(false), 200)} />
-          <div className="move-list">
-            {options.map(i => (
-              <div key={i.id} className={`pokemon-option ${value === i.id ? 'selected' : ''}`}
-                onClick={() => { onChange(i.id); setIsOpen(false); setSearch(''); }}>
-                {i.name}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function EvoMovePicker({ value, onChange }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const moves = getGameMoves();
-
-  const options = search
-    ? moves.filter(m => m.name && m.name.toLowerCase().includes(search.toLowerCase()))
-    : moves;
-
-  const current = moves.find(m => m.id === value);
-
-  return (
-    <div className="move-picker inline-picker">
-      <div className="move-picker-display" onClick={() => setIsOpen(!isOpen)}>
-        <span className="move-name">{current?.name || `Move #${value}`}</span>
-        <span className="dropdown-arrow">&#9662;</span>
-      </div>
-      {isOpen && (
-        <div className="move-dropdown">
-          <input type="text" className="pokemon-search" placeholder="Search moves..."
-            value={search} onChange={e => setSearch(e.target.value)} autoFocus
-            onBlur={() => setTimeout(() => setIsOpen(false), 200)} />
-          <div className="move-list">
-            {options.map(m => (
-              <div key={m.id} className={`pokemon-option ${value === m.id ? 'selected' : ''}`}
-                onClick={() => { onChange(m.id); setIsOpen(false); setSearch(''); }}>
-                <span className="move-type-badge" data-type={m.type?.toLowerCase()}>{m.type || '?'}</span>
-                {' '}{m.name}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function EvoPokemonPicker({ value, onChange }) {
-  const gamePokemon = getGamePokemon();
-  const current = gamePokemon.find(p => p.id === value);
-
-  function handleChange(name) {
-    const pk = name ? (POKEMON_BY_NAME[name.toUpperCase()] || null) : null;
-    onChange(pk ? pk.id : 0);
-  }
-
-  return <PokemonPicker value={current?.name || ''} onChange={handleChange} />;
 }
