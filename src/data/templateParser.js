@@ -279,7 +279,7 @@ export function parseJSON(json) {
 
   const areas = (data.encounters || []).map(area => {
     const isStatic = area.name.startsWith('[STATIC]');
-    const isStarters = area.name === '[STATIC] Starters';
+    const isStarters = area.name === '[STATIC] Starters' || area.name === 'New Bark Town Starters';
 
     return {
       name: area.name,
