@@ -20,7 +20,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 3; // v3: extra editors
+const SAVE_VERSION = 4; // v4: descriptive fishing names, starters under New Bark Town
 
 function loadSavedState() {
   try {
@@ -41,7 +41,28 @@ function loadSavedState() {
         return a;
       });
     }
-    // v3: extras are stored alongside
+    // v4: rename fishing groups and starters
+    if ((saved.version || 1) < 4) {
+      const nameMap = {
+        '[STATIC] Starters': 'New Bark Town Starters',
+        'Fishing Group 1': 'Fishing - Shore (Cherrygrove, Olivine, Cianwood)',
+        'Fishing Group 2': 'Fishing - Ocean (New Bark, Ports, Sea Routes)',
+        'Fishing Group 3': 'Fishing - Caves (Dark Cave, Union Cave, Mt. Mortar)',
+        'Fishing Group 4': 'Fishing - Ponds (Violet, Ecruteak, Ilex Forest)',
+        'Fishing Group 5': "Fishing - Dragon's Den / Ice Path",
+        'Fishing Group 6': 'Fishing - Qwilfish Swarm',
+        'Fishing Group 7': 'Fishing - Remoraid Swarm',
+        'Fishing Group 8': 'Fishing - Lake of Rage / Fuchsia City',
+        'Fishing Group 9': 'Fishing - Route 45',
+        'Fishing Group 10': 'Fishing - Whirl Islands',
+        'Fishing Group 11': 'Fishing - Route 32 (Qwilfish)',
+        'Fishing Group 12': 'Fishing - Route 44 (Remoraid)',
+      };
+      saved.areas = saved.areas.map(a => ({
+        ...a,
+        name: nameMap[a.name] || a.name,
+      }));
+    }
     saved.version = SAVE_VERSION;
     return saved;
   } catch (_) { /* ignore corrupt data */ }
