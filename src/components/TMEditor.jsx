@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getGameTMs, getGameHMs, getGameMoves } from '../data/gameData';
+import { getGameTMs, getGameMoves } from '../data/gameData';
 
 export function getDefaultTMs() {
   return getGameTMs().map(t => ({ tm: t.tm, moveId: t.moveId, moveName: t.move }));
@@ -9,7 +9,7 @@ export default function TMEditor({ tms, onChange }) {
   const [search, setSearch] = useState('');
   const allMoves = getGameMoves();
   const defaultTMs = getGameTMs();
-  const hms = getGameHMs();
+
 
   const moveById = {};
   for (const m of allMoves) moveById[m.id] = m;
@@ -69,31 +69,6 @@ export default function TMEditor({ tms, onChange }) {
         </tbody>
       </table>
 
-      {hms.length > 0 && (
-        <>
-          <div className="extra-editor-header" style={{ marginTop: 12 }}>
-            <b>HMs</b> (not editable)
-          </div>
-          <table className="extra-table">
-            <thead>
-              <tr><th>HM</th><th>Move</th><th>Type</th><th>Power</th></tr>
-            </thead>
-            <tbody>
-              {hms.map(h => {
-                const move = moveById[h.moveId];
-                return (
-                  <tr key={h.hm}>
-                    <td className="col-label">HM{String(h.hm).padStart(2, '0')}</td>
-                    <td>{move?.name || '???'}</td>
-                    <td><span className="move-type-badge" data-type={move?.type?.toLowerCase()}>{move?.type || '?'}</span></td>
-                    <td className="col-num">{move?.power || '-'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </>
-      )}
     </div>
   );
 }
