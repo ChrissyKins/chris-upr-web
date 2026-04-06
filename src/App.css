@@ -828,3 +828,56 @@ hr {
   color: #666;
   margin-top: 2px;
 }
+
+/* ── Field Item Groups ── */
+
+.field-item-group {
+  margin-bottom: 2px;
+}
+
+.field-item-header {
+  cursor: pointer;
+  padding: 3px 6px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  user-select: none;
+}
+
+.field-item-header:hover {
+  background: #e8e8e8;
+}
+
+.collapse-arrow {
+  font-size: 0.7em;
+  display: inline-block;
+  width: 12px;
+}
+
+.field-item-count {
+  font-weight: normal;
+  font-size: 0.85em;
+  color: #666;
+}
+
+.field-item-changed {
+  font-weight: normal;
+  font-size: 0.85em;
+  color: #a06000;
+}
+
+.field-item-list {
+  padding: 4px 8px 4px 20px;
+  border: 1px solid #eee;
+  border-top: none;
+}
+
+.field-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1px 0;
+}
+
+.field-item-row.row-changed {
+  background: #fffde0;
+}

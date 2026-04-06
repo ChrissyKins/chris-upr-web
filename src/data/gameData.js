@@ -346,6 +346,7 @@ export function getGameFieldItems() {
       index: f.index,
       item: f.item,
       name: f.name,
+      location: f.location || null,
     }));
   }
   return _fieldItems || [];
