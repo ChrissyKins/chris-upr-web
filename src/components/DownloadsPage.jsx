@@ -1,5 +1,16 @@
 const RELEASES = [
   {
+    version: 'v1.1.0',
+    date: 'April 6, 2026',
+    downloadUrl: 'https://github.com/ChrissyKins/chris-upr/releases/download/v1.1.0/ChrisUPR.zip',
+    changelog: [
+      'Custom TM moves, move tutors, in-game trades, shop items, field items',
+      'Custom learnsets, Pokemon stats/types, and evolutions',
+      'Trainer held items and custom movesets',
+      'Game data exporter now exports trades, shops, field items, and move tutors',
+    ],
+  },
+  {
     version: 'v1.0.0',
     date: 'March 31, 2026',
     downloadUrl: 'https://github.com/ChrissyKins/chris-upr/releases/download/v1.0.0/ChrisUPR.zip',
