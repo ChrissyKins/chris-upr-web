@@ -141,12 +141,7 @@ export default function LocationCarousel({ areas, trainers, fieldItems, onSlotCh
   }
 
   const groupOptions = useMemo(() => groups.map((g, i) => {
-    const filled = g.subAreas.reduce((s, a) => s + a.slots.filter(sl => sl.pokemonName && !sl.isRandom).length, 0);
-    const total = g.subAreas.reduce((s, a) => s + a.slots.length, 0);
-    const trainerCount = g.trainers.length;
-    const check = filled === total ? ' *' : filled > 0 ? ' ~' : '';
-    const trainerLabel = trainerCount > 0 ? ` [${trainerCount} trainers]` : '';
-    return <option key={i} value={i}>{g.location}{check}{trainerLabel}</option>;
+    return <option key={i} value={i}>{g.location}</option>;
   }), [groups]);
 
   const group = groups[currentIndex];
@@ -170,11 +165,6 @@ export default function LocationCarousel({ areas, trainers, fieldItems, onSlotCh
   }, []);
 
   if (!group) return null;
-
-  const filledCount = group.subAreas.reduce(
-    (sum, a) => sum + a.slots.filter(s => s.pokemonName && !s.isRandom).length, 0
-  );
-  const totalCount = group.subAreas.reduce((sum, a) => sum + a.slots.length, 0);
 
   function handleReset() {
     if (!window.confirm(`Reset ${group.location} to default encounters?`)) return;
@@ -206,10 +196,6 @@ export default function LocationCarousel({ areas, trainers, fieldItems, onSlotCh
 
         <h2 className="carousel-title">{group.location}</h2>
         <div>
-          {filledCount}/{totalCount} slots filled
-          {group.trainers.length > 0 && ` | ${group.trainers.length} trainer(s)`}
-          {group.fieldItems.length > 0 && ` | ${group.fieldItems.length} item(s)`}
-          {' | '}
           <a href="#" onClick={(e) => { e.preventDefault(); handleReset(); }}>[Reset Area]</a>
         </div>
       </div>
