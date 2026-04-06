@@ -1,6 +1,16 @@
 import { POKEMON_BY_NAME, POKEMON_BY_ID } from './pokemon';
-import { expandTimeOfDay } from './gameData';
+import { expandTimeOfDay, getGameMoves } from './gameData';
 import { getDefaultCrystalEncounters, getDefaultCrystalTrainers } from './crystalEncounters';
+
+let _moveNameToId = null;
+function moveNameToId(name) {
+  if (!name) return 0;
+  if (!_moveNameToId) {
+    _moveNameToId = {};
+    for (const m of getGameMoves()) _moveNameToId[m.name.toUpperCase()] = m.id;
+  }
+  return _moveNameToId[name.toUpperCase()] || 0;
+}
 
 function nameToId(name) {
   if (!name) return 0;
@@ -60,7 +70,7 @@ export function exportJSON(areas, trainers, extras) {
         level: poke.level,
       };
       if (poke.item) entry.item = poke.item;
-      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves;
+      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves.map(m => moveNameToId(m));
       return entry;
     }),
   }));
@@ -211,7 +221,7 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
         level: poke.level,
       };
       if (poke.item) entry.item = poke.item;
-      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves;
+      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves.map(m => moveNameToId(m));
       return entry;
     }),
   }));
@@ -319,7 +329,13 @@ export function parseJSON(json) {
         isRandom: resolved.isRandom,
         level: poke.level || 5,
         item: poke.item || null,
-        moves: poke.moves || null,
+        moves: poke.moves ? poke.moves.map(m => {
+          if (typeof m === 'number') {
+            const move = getGameMoves().find(gm => gm.id === m);
+            return move ? move.name : null;
+          }
+          return m || null;
+        }) : null,
       };
     }),
   }));
