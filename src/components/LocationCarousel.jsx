@@ -36,6 +36,15 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
     groupMap[key].subAreas.push({ ...area, originalIndex: i });
   }
 
+  // Sort sub-areas within each group: starters first, then grass, then surfing
+  for (const group of groups) {
+    group.subAreas.sort((a, b) => {
+      const aStarters = a.name.endsWith(' Starters') ? 0 : 1;
+      const bStarters = b.name.endsWith(' Starters') ? 0 : 1;
+      return aStarters - bStarters;
+    });
+  }
+
   // Add trainers to their location groups (or create new groups for trainer-only locations)
   if (trainers && trainers.length > 0) {
     for (const trainer of trainers) {
