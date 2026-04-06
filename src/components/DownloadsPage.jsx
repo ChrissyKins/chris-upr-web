@@ -7,7 +7,6 @@ const RELEASES = [
       'Custom TM moves, move tutors, in-game trades, shop items, field items',
       'Custom learnsets, Pokemon stats/types, and evolutions',
       'Trainer held items and custom movesets',
-      'Game data exporter now exports trades, shops, field items, and move tutors',
     ],
   },
   {
