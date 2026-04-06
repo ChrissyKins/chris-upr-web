@@ -6,6 +6,7 @@
 export const STATIC_ENCOUNTERS = [
   {
     category: 'Starters',
+    location: 'New Bark Town',
     isStarters: true,
     entries: [
       { label: 'Starter 1', pokemon: 'Chikorita', level: 5, starterIndex: 0 },

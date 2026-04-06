@@ -12,7 +12,7 @@ function ensureCache() {
     // Append static encounter areas (kept separate since they have special UI handling)
     for (const group of STATIC_ENCOUNTERS) {
       areas.push({
-        name: `[STATIC] ${group.category}`,
+        name: group.location ? `${group.location} ${group.category}` : `[STATIC] ${group.category}`,
         isStarters: group.isStarters || false,
         slots: group.entries.map((e, i) => ({
           slotNum: i + 1,

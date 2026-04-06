@@ -88,17 +88,13 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
     const aIsStatic = aKey.startsWith('[STATIC]');
     const bIsStatic = bKey.startsWith('[STATIC]');
 
-    const aIsStarters = aKey === '[STATIC] STARTERS';
-    const bIsStarters = bKey === '[STATIC] STARTERS';
-
-    function tier(isStarters, isStatic, isSpecial) {
-      if (isStarters) return -1;
+    function tier(isStatic, isSpecial) {
       if (isSpecial) return 2;
       if (isStatic) return 1;
       return 0;
     }
-    const aTier = tier(aIsStarters, aIsStatic, aIsSpecial);
-    const bTier = tier(bIsStarters, bIsStatic, bIsSpecial);
+    const aTier = tier(aIsStatic, aIsSpecial);
+    const bTier = tier(bIsStatic, bIsSpecial);
     if (aTier !== bTier) return aTier - bTier;
     if (aTier > 0) return a.location.localeCompare(b.location);
 
@@ -116,6 +112,7 @@ function getLocationKey(areaName) {
   return areaName
     .replace(/ Grass\/Cave.*$/, '')
     .replace(/ Surfing$/, '')
+    .replace(/ Starters$/, '')
     .trim();
 }
 
@@ -125,7 +122,7 @@ function getEncounterLabel(areaName) {
     return match && match[1] ? `Grass/Cave (${match[1]})` : 'Grass/Cave';
   }
   if (areaName.includes('Surfing')) return 'Surfing';
-  if (areaName === '[STATIC] Starters') return 'Starters';
+  if (areaName.endsWith(' Starters')) return 'Starters';
   if (areaName.startsWith('[STATIC]')) return areaName;
   return areaName;
 }
