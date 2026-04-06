@@ -26,19 +26,14 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
     const area = areas[i];
     if (isHiddenArea(area.name)) continue;
     const loc = getLocationKey(area.name);
+    const key = loc.toUpperCase();
 
-    if (!groupMap[loc]) {
-      groupMap[loc] = { location: loc, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(area.name) };
-      groups.push(groupMap[loc]);
+    if (!groupMap[key]) {
+      groupMap[key] = { location: loc, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(area.name) };
+      groups.push(groupMap[key]);
     }
 
-    groupMap[loc].subAreas.push({ ...area, originalIndex: i });
-  }
-
-  // Build a case-insensitive lookup for groupMap
-  const groupMapUpper = {};
-  for (const key of Object.keys(groupMap)) {
-    groupMapUpper[key.toUpperCase()] = groupMap[key];
+    groupMap[key].subAreas.push({ ...area, originalIndex: i });
   }
 
   // Add trainers to their location groups (or create new groups for trainer-only locations)
@@ -46,12 +41,11 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
     for (const trainer of trainers) {
       const location = getTrainerLocation(trainer.index, trainers);
       if (location) {
-        const upperLoc = location.toUpperCase();
-        let group = groupMapUpper[upperLoc];
+        const key = location.toUpperCase();
+        let group = groupMap[key];
         if (!group) {
           group = { location: location, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(location) };
-          groupMap[location] = group;
-          groupMapUpper[upperLoc] = group;
+          groupMap[key] = group;
           groups.push(group);
         }
         group.trainers.push(trainer);
@@ -66,12 +60,11 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
       const def = defaults.find(d => d.index === fi.index);
       const location = def?.location;
       if (location) {
-        const upperLoc = location.toUpperCase();
-        let group = groupMapUpper[upperLoc];
+        const key = location.toUpperCase();
+        let group = groupMap[key];
         if (!group) {
           group = { location: location, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(location) };
-          groupMap[location] = group;
-          groupMapUpper[upperLoc] = group;
+          groupMap[key] = group;
           groups.push(group);
         }
         group.fieldItems.push(fi);
