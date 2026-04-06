@@ -3,16 +3,18 @@ import { getImageForArea, getFloorImage } from '../data/locationImages';
 import { PROGRESSION_ORDER } from '../data/progressionOrder';
 import { getTrainerLocation } from '../data/trainerLocationMap';
 import { getDefaultSlotsForArea } from '../data/crystalEncounters';
+import { getGameItems, getGameFieldItems } from '../data/gameData';
 import { usePokemonFilters } from '../data/pokemonFilterContext';
 import { getFilteredPokemonList } from './PokemonPicker';
 import SlotEditor from './SlotEditor';
 import TrainerEditor from './TrainerEditor';
+import FieldItemSlot from './FieldItemSlot';
 
 // Build progression lookup
 const PROGRESSION_MAP = {};
 PROGRESSION_ORDER.forEach((name, i) => { PROGRESSION_MAP[name.toUpperCase()] = i; });
 
-function groupAreasByLocation(areas, trainers) {
+function groupAreasByLocation(areas, trainers, fieldItems) {
   const groups = [];
   const groupMap = {};
 
@@ -21,7 +23,7 @@ function groupAreasByLocation(areas, trainers) {
     const loc = getLocationKey(area.name);
 
     if (!groupMap[loc]) {
-      groupMap[loc] = { location: loc, subAreas: [], trainers: [], image: getImageForArea(area.name) };
+      groupMap[loc] = { location: loc, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(area.name) };
       groups.push(groupMap[loc]);
     }
 
@@ -42,13 +44,32 @@ function groupAreasByLocation(areas, trainers) {
         const upperLoc = location.toUpperCase();
         let group = groupMapUpper[upperLoc];
         if (!group) {
-          // Create a new group for locations with trainers but no encounters (e.g. gyms)
-          group = { location: location, subAreas: [], trainers: [], image: getImageForArea(location) };
+          group = { location: location, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(location) };
           groupMap[location] = group;
           groupMapUpper[upperLoc] = group;
           groups.push(group);
         }
         group.trainers.push(trainer);
+      }
+    }
+  }
+
+  // Add field items to their location groups
+  if (fieldItems && fieldItems.length > 0) {
+    const defaults = getGameFieldItems();
+    for (const fi of fieldItems) {
+      const def = defaults.find(d => d.index === fi.index);
+      const location = def?.location;
+      if (location) {
+        const upperLoc = location.toUpperCase();
+        let group = groupMapUpper[upperLoc];
+        if (!group) {
+          group = { location: location, subAreas: [], trainers: [], fieldItems: [], image: getImageForArea(location) };
+          groupMap[location] = group;
+          groupMapUpper[upperLoc] = group;
+          groups.push(group);
+        }
+        group.fieldItems.push(fi);
       }
     }
   }
@@ -99,8 +120,8 @@ function getEncounterLabel(areaName) {
   return areaName;
 }
 
-export default function LocationCarousel({ areas, trainers, onSlotChange, onResetArea, onTrainerPokemonChange }) {
-  const groups = useMemo(() => groupAreasByLocation(areas, trainers), [areas, trainers]);
+export default function LocationCarousel({ areas, trainers, fieldItems, onSlotChange, onResetArea, onTrainerPokemonChange, onFieldItemChange }) {
+  const groups = useMemo(() => groupAreasByLocation(areas, trainers, fieldItems), [areas, trainers, fieldItems]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const globalFilters = usePokemonFilters();
 
@@ -178,6 +199,7 @@ export default function LocationCarousel({ areas, trainers, onSlotChange, onRese
         <div>
           {filledCount}/{totalCount} slots filled
           {group.trainers.length > 0 && ` | ${group.trainers.length} trainer(s)`}
+          {group.fieldItems.length > 0 && ` | ${group.fieldItems.length} item(s)`}
           {' | '}
           <a href="#" onClick={(e) => { e.preventDefault(); handleReset(); }}>[Reset Area]</a>
         </div>
@@ -270,6 +292,20 @@ export default function LocationCarousel({ areas, trainers, onSlotChange, onRese
                 trainer={trainer}
                 trainerIndex={trainer.index}
                 onPokemonChange={onTrainerPokemonChange}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Field items for this location */}
+        {group.fieldItems.length > 0 && onFieldItemChange && (
+          <div>
+            <div className="carousel-area-label">Items</div>
+            {group.fieldItems.map((fi) => (
+              <FieldItemSlot
+                key={fi.index}
+                fieldItem={fi}
+                onChange={onFieldItemChange}
               />
             ))}
           </div>

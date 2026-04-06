@@ -6,7 +6,7 @@ import TMEditor, { getDefaultTMs } from './components/TMEditor';
 import MoveTutorEditor, { getDefaultMoveTutors } from './components/MoveTutorEditor';
 import TradeEditor, { getDefaultTrades } from './components/TradeEditor';
 // import ShopEditor, { getDefaultShops } from './components/ShopEditor';
-import FieldItemEditor, { getDefaultFieldItems } from './components/FieldItemEditor';
+import { getDefaultFieldItems } from './components/FieldItemEditor';
 import LearnsetEditor from './components/LearnsetEditor';
 import PokemonStatsEditor from './components/PokemonStatsEditor';
 import EvolutionEditor from './components/EvolutionEditor';
@@ -59,7 +59,6 @@ const EDITOR_TABS = [
   { id: 'tms', label: 'TMs' },
   { id: 'tutors', label: 'Move Tutors' },
   { id: 'trades', label: 'Trades' },
-  { id: 'fieldItems', label: 'Field Items' },
   { id: 'learnsets', label: 'Learnsets' },
   { id: 'stats', label: 'Stats / Types' },
   { id: 'evolutions', label: 'Evolutions' },
@@ -215,6 +214,16 @@ function App() {
         };
       }
       return next;
+    });
+  }, []);
+
+  const handleFieldItemChange = useCallback((fieldItemIndex, newItemId) => {
+    setExtras(prev => {
+      const items = prev.fieldItems || getDefaultFieldItems();
+      return {
+        ...prev,
+        fieldItems: items.map(f => f.index === fieldItemIndex ? { ...f, item: newItemId } : f),
+      };
     });
   }, []);
 
@@ -456,9 +465,11 @@ function App() {
             <LocationCarousel
               areas={areas}
               trainers={trainers}
+              fieldItems={getExtraState('fieldItems', getDefaultFieldItems)}
               onSlotChange={handleSlotChange}
               onResetArea={handleResetArea}
               onTrainerPokemonChange={handleTrainerPokemonChange}
+              onFieldItemChange={handleFieldItemChange}
             />
           </>
         )}
@@ -481,13 +492,6 @@ function App() {
           <TradeEditor
             trades={getExtraState('trades', getDefaultTrades)}
             onChange={(val) => setExtraState('trades', val)}
-          />
-        )}
-
-        {editorTab === 'fieldItems' && (
-          <FieldItemEditor
-            fieldItems={getExtraState('fieldItems', getDefaultFieldItems)}
-            onChange={(val) => setExtraState('fieldItems', val)}
           />
         )}
 

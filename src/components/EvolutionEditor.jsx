@@ -42,10 +42,25 @@ export default function EvolutionEditor({ edits, onChange }) {
   const originalEvos = allEvolutions.filter(e => e.fromId === pokemonId);
   const customEvos = edits.filter(e => e.fromId === pokemonId);
 
-  const displayEvos = originalEvos.map(orig => {
-    const edit = customEvos.find(e => e.toId === orig.toId);
-    return edit || { fromId: orig.fromId, toId: orig.toId, method: orig.method, extraInfo: 0, isOriginal: true };
-  });
+  // For removed evolutions, track by a special edit with method: 'REMOVED'
+  const removedToIds = new Set(edits.filter(e => e.fromId === pokemonId && e.method === 'REMOVED').map(e => e.toId));
+
+  const displayEvos = originalEvos
+    .filter(orig => !removedToIds.has(orig.toId))
+    .map(orig => {
+      const edit = customEvos.find(e => e.toId === orig.toId && e.method !== 'REMOVED');
+      if (edit) return edit;
+      // Parse extraInfo from the detail string for unedited originals
+      let extraInfo = 0;
+      const levelMatch = orig.detail?.match(/Level\s+(\d+)/);
+      if (levelMatch) extraInfo = parseInt(levelMatch[1]);
+      // For stones, extract the stone item ID from the original data
+      if (orig.method === 'STONE') {
+        const stoneNames = { 'Moon Stone': 8, 'Fire Stone': 22, 'Thunderstone': 23, 'Water Stone': 24, 'Leaf Stone': 34, 'Sun Stone': 169 };
+        extraInfo = stoneNames[orig.detail] || 0;
+      }
+      return { fromId: orig.fromId, toId: orig.toId, method: orig.method, extraInfo, isOriginal: true, detail: orig.detail };
+    });
   for (const edit of customEvos) {
     if (!originalEvos.find(o => o.toId === edit.toId)) {
       displayEvos.push(edit);
@@ -89,7 +104,22 @@ export default function EvolutionEditor({ edits, onChange }) {
     }
   }
 
-  function handleRemoveEvo(toId) {
+  function handleRemoveEvo(toId, isOriginal) {
+    if (isOriginal) {
+      // For original evolutions, add a 'REMOVED' marker so we know to exclude it
+      const alreadyRemoved = edits.some(e => e.fromId === pokemonId && e.toId === toId && e.method === 'REMOVED');
+      if (!alreadyRemoved) {
+        // Remove any existing edits for this evo first, then add the REMOVED marker
+        const cleaned = edits.filter(e => !(e.fromId === pokemonId && e.toId === toId));
+        onChange([...cleaned, { fromId: pokemonId, toId, method: 'REMOVED', extraInfo: 0 }]);
+      }
+    } else {
+      // For custom-added evolutions, just remove the edit
+      onChange(edits.filter(e => !(e.fromId === pokemonId && e.toId === toId)));
+    }
+  }
+
+  function handleRestoreEvo(toId) {
     onChange(edits.filter(e => !(e.fromId === pokemonId && e.toId === toId)));
   }
 
@@ -140,7 +170,23 @@ export default function EvolutionEditor({ edits, onChange }) {
             {' '}<a href="#" onClick={(e) => { e.preventDefault(); handleAddEvo(); }}>[+ Add Evolution]</a>
           </div>
 
-          {displayEvos.length === 0 && <p>No evolutions for this Pokemon.</p>}
+          {displayEvos.length === 0 && removedToIds.size === 0 && <p>No evolutions for this Pokemon.</p>}
+
+          {removedToIds.size > 0 && (
+            <div className="removed-evos">
+              Removed:{' '}
+              {[...removedToIds].map((toId, i) => {
+                const pk = gamePokemon.find(p => p.id === toId);
+                return (
+                  <span key={toId}>
+                    {i > 0 && ', '}
+                    <s>{pk?.name || '???'}</s>
+                    {' '}<a href="#" onClick={(e) => { e.preventDefault(); handleRestoreEvo(toId); }}>(restore)</a>
+                  </span>
+                );
+              })}
+            </div>
+          )}
 
           {displayEvos.map((evo, i) => {
             const toPokemon = gamePokemon.find(p => p.id === evo.toId);
@@ -204,11 +250,14 @@ export default function EvolutionEditor({ edits, onChange }) {
                   )}
 
                   {isCustom && (
-                    <> <a href="#" onClick={(e) => { e.preventDefault(); handleRemoveEvo(evo.toId); }}>(remove edit)</a></>
+                    <> <a href="#" onClick={(e) => { e.preventDefault(); handleRemoveEvo(evo.toId, false); }}>(remove edit)</a></>
+                  )}
+                  {!isCustom && (
+                    <> <a href="#" onClick={(e) => { e.preventDefault(); handleRemoveEvo(evo.toId, true); }}>(remove)</a></>
                   )}
                 </div>
-                {evo.isOriginal && !isCustom && (
-                  <span className="evo-detail">{allEvolutions.find(o => o.fromId === pokemonId && o.toId === evo.toId)?.detail || ''}</span>
+                {evo.isOriginal && !isCustom && evo.detail && (
+                  <span className="evo-detail">{evo.detail}</span>
                 )}
               </div>
             );

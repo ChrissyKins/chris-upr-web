@@ -829,6 +829,12 @@ hr {
   margin-top: 2px;
 }
 
+.removed-evos {
+  font-size: 0.85em;
+  color: #999;
+  margin-bottom: 6px;
+}
+
 /* ── Field Item Groups ── */
 
 .field-item-group {
@@ -879,5 +885,16 @@ hr {
 }
 
 .field-item-row.row-changed {
+  background: #fffde0;
+}
+
+.field-item-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.field-item-slot.slot-changed {
   background: #fffde0;
 }
