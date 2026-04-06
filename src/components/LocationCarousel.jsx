@@ -88,13 +88,17 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
     const aIsStatic = aKey.startsWith('[STATIC]');
     const bIsStatic = bKey.startsWith('[STATIC]');
 
-    function tier(isStatic, isSpecial) {
+    const aIsStarters = aKey === '[STATIC] STARTERS';
+    const bIsStarters = bKey === '[STATIC] STARTERS';
+
+    function tier(isStarters, isStatic, isSpecial) {
+      if (isStarters) return -1;
       if (isSpecial) return 2;
       if (isStatic) return 1;
       return 0;
     }
-    const aTier = tier(aIsStatic, aIsSpecial);
-    const bTier = tier(bIsStatic, bIsSpecial);
+    const aTier = tier(aIsStarters, aIsStatic, aIsSpecial);
+    const bTier = tier(bIsStarters, bIsStatic, bIsSpecial);
     if (aTier !== bTier) return aTier - bTier;
     if (aTier > 0) return a.location.localeCompare(b.location);
 
@@ -108,7 +112,6 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
 }
 
 function getLocationKey(areaName) {
-  if (areaName === '[STATIC] Starters') return 'New Bark Town';
   if (areaName.startsWith('[STATIC]')) return areaName;
   return areaName
     .replace(/ Grass\/Cave.*$/, '')
