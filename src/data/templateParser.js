@@ -1,5 +1,6 @@
 import { POKEMON_BY_NAME, POKEMON_BY_ID } from './pokemon';
 import { expandTimeOfDay } from './gameData';
+import { getDefaultCrystalEncounters, getDefaultCrystalTrainers } from './crystalEncounters';
 
 function nameToId(name) {
   if (!name) return 0;
@@ -72,6 +73,159 @@ export function exportJSON(areas, trainers, extras) {
   };
 
   // Include extra data sections if they have any edits
+  if (extras) {
+    if (extras.tms && extras.tms.length > 0) {
+      result.tms = extras.tms.map(tm => ({ tm: tm.tm, moveId: tm.moveId }));
+    }
+    if (extras.moveTutors && extras.moveTutors.length > 0) {
+      result.moveTutors = extras.moveTutors.map(mt => ({ index: mt.index, moveId: mt.moveId }));
+    }
+    if (extras.trades && extras.trades.length > 0) {
+      result.trades = extras.trades.map(t => ({
+        index: t.index,
+        givenPokemon: nameToId(t.givenPokemon),
+        requestedPokemon: nameToId(t.requestedPokemon),
+        nickname: t.nickname || undefined,
+        otName: t.otName || undefined,
+        item: t.item || undefined,
+      }));
+    }
+    if (extras.shops && extras.shops.length > 0) {
+      result.shops = extras.shops.map(s => ({
+        index: s.index,
+        name: s.name || undefined,
+        items: s.items,
+      }));
+    }
+    if (extras.fieldItems && extras.fieldItems.length > 0) {
+      result.fieldItems = extras.fieldItems.map(f => ({
+        index: f.index,
+        item: f.item,
+      }));
+    }
+    if (extras.learnsets && Object.keys(extras.learnsets).length > 0) {
+      result.learnsets = extras.learnsets;
+    }
+    if (extras.pokemonEdits && extras.pokemonEdits.length > 0) {
+      result.pokemonEdits = extras.pokemonEdits;
+    }
+    if (extras.evolutionEdits && extras.evolutionEdits.length > 0) {
+      result.evolutionEdits = extras.evolutionEdits;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Check if an area has any slots that differ from vanilla defaults.
+ */
+function isAreaChanged(area, defaultAreas) {
+  const def = defaultAreas.find(d => d.name === area.name);
+  if (!def) return true; // new area not in defaults — include it
+  if (area.slots.length !== def.slots.length) return true;
+  return area.slots.some((slot, i) => {
+    const ds = def.slots[i];
+    if (!ds) return true;
+    if (slot.isRandom && !ds.isRandom) return true;
+    if (!slot.isRandom && ds.isRandom) return true;
+    if ((slot.pokemonName || '') !== (ds.pokemonName || '')) return true;
+    if (slot.level !== ds.level) return true;
+    if ((slot.maxLevel || 0) !== (ds.maxLevel || 0)) return true;
+    return false;
+  });
+}
+
+/**
+ * Check if a trainer has any pokemon that differ from vanilla defaults.
+ */
+function isTrainerChanged(trainer, defaultTrainers) {
+  const def = defaultTrainers.find(d => d.index === trainer.index);
+  if (!def) return true;
+  if (trainer.pokemon.length !== def.pokemon.length) return true;
+  return trainer.pokemon.some((poke, i) => {
+    const dp = def.pokemon[i];
+    if (!dp) return true;
+    if (poke.isRandom && !dp.isRandom) return true;
+    if (!poke.isRandom && dp.isRandom) return true;
+    if ((poke.pokemonName || '') !== (dp.pokemonName || '')) return true;
+    if (poke.level !== dp.level) return true;
+    if ((poke.item || null) !== (dp.item || null)) return true;
+    if (poke.moves && !dp.moves) return true;
+    if (!poke.moves && dp.moves) return true;
+    if (poke.moves && dp.moves && JSON.stringify(poke.moves) !== JSON.stringify(dp.moves)) return true;
+    return false;
+  });
+}
+
+/**
+ * Export only changed data as JSON (delta mode).
+ * Areas/trainers that match vanilla defaults are omitted, letting the
+ * randomizer handle them with its own settings.
+ */
+export function exportChangesOnlyJSON(areas, trainers, extras) {
+  const defaultAreas = getDefaultCrystalEncounters();
+  const defaultTrainers = getDefaultCrystalTrainers();
+
+  const changedAreas = areas.filter(area => isAreaChanged(area, defaultAreas));
+  const changedTrainers = (trainers || []).filter(t => isTrainerChanged(t, defaultTrainers));
+
+  const expandedAreas = expandTimeOfDay(changedAreas);
+
+  const jsonAreas = expandedAreas.map(area => {
+    const isStatic = area.name.startsWith('[STATIC]');
+    const isStarters = area.isStarters || area.name === '[STATIC] Starters';
+
+    return {
+      name: area.name,
+      slots: area.slots.map(slot => {
+        const entry = {};
+
+        if (isStatic && !isStarters && slot.romIndex >= 0) {
+          entry.slot = slot.romIndex + 1;
+        } else if (isStarters) {
+          entry.slot = slot.starterIndex >= 0 ? slot.starterIndex + 1 : slot.slotNum;
+        } else {
+          entry.slot = slot.slotNum;
+        }
+
+        if (slot.label) entry.label = slot.label;
+
+        entry.pokemon = slot.isRandom || !slot.pokemonName ? 0 : nameToId(slot.pokemonName);
+        entry.level = slot.level;
+        if (slot.maxLevel > 0) entry.maxLevel = slot.maxLevel;
+
+        return entry;
+      }),
+    };
+  });
+
+  const jsonTrainers = changedTrainers.map(trainer => ({
+    index: trainer.index,
+    name: trainer.displayName,
+    ...(trainer.tag ? { tag: trainer.tag } : {}),
+    pokemon: trainer.pokemon.map(poke => {
+      const entry = {
+        slot: poke.slotNum,
+        pokemon: poke.isRandom || !poke.pokemonName ? 0 : nameToId(poke.pokemonName),
+        level: poke.level,
+      };
+      if (poke.item) entry.item = poke.item;
+      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves;
+      return entry;
+    }),
+  }));
+
+  const result = {
+    format: 'pokemon-crystal-custom',
+    version: 3,
+  };
+
+  // Only include encounters/trainers if there are changes
+  if (jsonAreas.length > 0) result.encounters = jsonAreas;
+  if (jsonTrainers.length > 0) result.trainers = jsonTrainers;
+
+  // Extras already only export if they have content
   if (extras) {
     if (extras.tms && extras.tms.length > 0) {
       result.tms = extras.tms.map(tm => ({ tm: tm.tm, moveId: tm.moveId }));

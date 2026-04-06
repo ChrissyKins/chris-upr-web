@@ -87,4 +87,17 @@ export const PROGRESSION_ORDER = [
   'CELADON CITY',
   'CERULEAN CAVE',
   'ROUTE 28',
+  // Fishing groups (roughly ordered by when rods become available)
+  'FISHING GROUP 1',
+  'FISHING GROUP 2',
+  'FISHING GROUP 3',
+  'FISHING GROUP 4',
+  'FISHING GROUP 5',
+  'FISHING GROUP 6',
+  'FISHING GROUP 7',
+  'FISHING GROUP 8',
+  'FISHING GROUP 9',
+  'FISHING GROUP 10',
+  'FISHING GROUP 11',
+  'FISHING GROUP 12',
 ];

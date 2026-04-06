@@ -14,12 +14,17 @@ import FieldItemSlot from './FieldItemSlot';
 const PROGRESSION_MAP = {};
 PROGRESSION_ORDER.forEach((name, i) => { PROGRESSION_MAP[name.toUpperCase()] = i; });
 
+function isHiddenArea(name) {
+  return /^Headbutt Trees Set/i.test(name) || /^Time-Specific Fishing/i.test(name);
+}
+
 function groupAreasByLocation(areas, trainers, fieldItems) {
   const groups = [];
   const groupMap = {};
 
   for (let i = 0; i < areas.length; i++) {
     const area = areas[i];
+    if (isHiddenArea(area.name)) continue;
     const loc = getLocationKey(area.name);
 
     if (!groupMap[loc]) {
@@ -78,8 +83,8 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
   groups.sort((a, b) => {
     const aKey = a.location.toUpperCase();
     const bKey = b.location.toUpperCase();
-    const aIsSpecial = /Fishing|Headbutt|Bug Catching/i.test(aKey);
-    const bIsSpecial = /Fishing|Headbutt|Bug Catching/i.test(bKey);
+    const aIsSpecial = /Bug Catching/i.test(aKey);
+    const bIsSpecial = /Bug Catching/i.test(bKey);
     const aIsStatic = aKey.startsWith('[STATIC]');
     const bIsStatic = bKey.startsWith('[STATIC]');
 
@@ -103,6 +108,7 @@ function groupAreasByLocation(areas, trainers, fieldItems) {
 }
 
 function getLocationKey(areaName) {
+  if (areaName === '[STATIC] Starters') return 'New Bark Town';
   if (areaName.startsWith('[STATIC]')) return areaName;
   return areaName
     .replace(/ Grass\/Cave.*$/, '')
@@ -116,6 +122,7 @@ function getEncounterLabel(areaName) {
     return match && match[1] ? `Grass/Cave (${match[1]})` : 'Grass/Cave';
   }
   if (areaName.includes('Surfing')) return 'Surfing';
+  if (areaName === '[STATIC] Starters') return 'Starters';
   if (areaName.startsWith('[STATIC]')) return areaName;
   return areaName;
 }

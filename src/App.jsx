@@ -10,7 +10,7 @@ import { getDefaultFieldItems } from './components/FieldItemEditor';
 import LearnsetEditor from './components/LearnsetEditor';
 import PokemonStatsEditor from './components/PokemonStatsEditor';
 import EvolutionEditor from './components/EvolutionEditor';
-import { exportJSON, parseJSON } from './data/templateParser';
+import { exportChangesOnlyJSON, parseJSON } from './data/templateParser';
 import { getDefaultCrystalEncounters, getDefaultSlotsForArea, getDefaultCrystalTrainers } from './data/crystalEncounters';
 import { ALL_TYPES } from './data/pokemonFilters';
 import { PokemonFilterContext } from './data/pokemonFilterContext';
@@ -168,7 +168,14 @@ function App() {
 
   function handleExport() {
     if (!areas) return;
-    const json = exportJSON(areas, trainers, extras);
+    const json = exportChangesOnlyJSON(areas, trainers, extras);
+    const hasContent = json.encounters || json.trainers || json.tms || json.moveTutors
+      || json.trades || json.shops || json.fieldItems || json.learnsets
+      || json.pokemonEdits || json.evolutionEdits;
+    if (!hasContent) {
+      alert('No changes detected - nothing to export.');
+      return;
+    }
     const text = JSON.stringify(json, null, 2);
     const blob = new Blob([text], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -178,6 +185,7 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
 
   const handleSlotChange = useCallback((areaIndex, slotIndex, newSlot) => {
     setAreas(prev => {
