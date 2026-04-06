@@ -66,7 +66,7 @@ export default function PokemonPicker({ value, onChange }) {
 
   useEffect(() => {
     if (isOpen && listRef.current) {
-      const highlighted = listRef.current.children[highlightIndex + 1];
+      const highlighted = listRef.current.children[highlightIndex];
       if (highlighted) {
         highlighted.scrollIntoView({ block: 'nearest' });
       }
@@ -101,11 +101,6 @@ export default function PokemonPicker({ value, onChange }) {
     onChange(pokemon.name);
     setSearch('');
     setIsOpen(false);
-  }
-
-  function handleClear() {
-    onChange('');
-    setSearch('');
   }
 
   // Use native wheel events (not React synthetic) so preventDefault works
@@ -159,7 +154,6 @@ export default function PokemonPicker({ value, onChange }) {
               className="pokemon-sprite-small"
             />
             <span className="pokemon-name">{selectedPokemon.name}</span>
-            <button className="clear-btn" onClick={(e) => { e.stopPropagation(); handleClear(); }} title="Set to RANDOM">x</button>
           </>
         ) : (
           <span className="random-label">RANDOM</span>
@@ -179,12 +173,6 @@ export default function PokemonPicker({ value, onChange }) {
             autoFocus
           />
           <div className="pokemon-list" ref={listRef}>
-            <div
-              className={`pokemon-option ${!value ? 'selected' : ''}`}
-              onClick={() => { onChange(''); setIsOpen(false); setSearch(''); }}
-            >
-              <span className="random-option-label">RANDOM</span>
-            </div>
             {filtered.map((p, i) => (
               <div
                 key={p.id}
