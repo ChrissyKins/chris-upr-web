@@ -127,7 +127,7 @@ export default function PokemonStatsEditor({ edits, onChange }) {
                         value={getField(f.key)}
                         onChange={(e) => {
                           const v = parseInt(e.target.value);
-                          if (!isNaN(v) && v >= 1 && v <= 255) handleFieldChange(f.key, v);
+                          if (!isNaN(v)) handleFieldChange(f.key, Math.min(Math.max(v, 1), 255));
                         }}
                       />
                     </td>
