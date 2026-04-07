@@ -37,6 +37,39 @@ function getPokemonId(name) {
 // Game Boy text box: 18 chars per line, 2 lines per page
 const CHARS_PER_LINE = 18;
 
+// Token display widths: [TOKEN] in the text → how many tiles it takes on screen
+const TOKEN_WIDTHS = {
+  '[POKé]': 4, '[POK?]': 4,  // POKé = 4 tiles
+  '[pk]': 2, '[PK]': 2, '[MN]': 2,  // 2-tile tokens
+  '[.]': 1,  // 1-tile token
+};
+
+// Count displayed characters (tiles) for a line of text
+// Handles [TOKEN] sequences and \xHH escapes
+function countDisplayChars(line) {
+  let count = 0;
+  let i = 0;
+  while (i < line.length) {
+    if (line[i] === '[') {
+      const end = line.indexOf(']', i);
+      if (end >= 0) {
+        const token = line.substring(i, end + 1);
+        count += TOKEN_WIDTHS[token] || token.length - 2; // fallback: content length
+        i = end + 1;
+        continue;
+      }
+    }
+    if (line[i] === '\\' && i + 3 < line.length && line[i+1] === 'x') {
+      count += 1; // \xHH = 1 display char
+      i += 4;
+      continue;
+    }
+    count++;
+    i++;
+  }
+  return count;
+}
+
 // Split ROM dialogue into pages (separated by \p) and lines (separated by \n or \l)
 function splitPages(text) {
   if (!text) return [''];
@@ -292,14 +325,13 @@ function DialogueField({ label, text, onChange }) {
     onChange(joinPages(updated));
   }
 
-  // Count characters per line for a page (split on \n)
+  // Count displayed characters per line (tokens like [POKé] count as display width)
   function getLineInfo(page) {
     const lines = page.split('\n');
-    return lines.map(line => ({
-      text: line,
-      len: line.length,
-      over: line.length > CHARS_PER_LINE,
-    }));
+    return lines.map(line => {
+      const displayLen = countDisplayChars(line);
+      return { text: line, len: displayLen, over: displayLen > CHARS_PER_LINE };
+    });
   }
 
   return (
