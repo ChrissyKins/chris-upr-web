@@ -478,26 +478,74 @@ hr {
   background: #f8f4fc;
 }
 
-.trainer-dialogue-row {
-  margin-bottom: 4px;
+.dialogue-field {
+  margin-bottom: 6px;
 }
 
-.trainer-dialogue-row label {
-  display: block;
+.dialogue-field-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.dialogue-field-header label {
   font-size: 0.8em;
   font-weight: bold;
   color: #555;
+}
+
+.dialogue-add-page {
+  font-size: 0.75em;
+}
+
+.dialogue-page {
+  margin-bottom: 3px;
+  margin-left: 8px;
+}
+
+.dialogue-page-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7em;
+  color: #888;
   margin-bottom: 1px;
+}
+
+.dialogue-page-num {
+  font-weight: bold;
+}
+
+.dialogue-remove-page {
+  color: #c44;
+  font-size: 0.9em;
+}
+
+.dialogue-line-counts {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 0.95em;
+}
+
+.dialogue-line-counts .over-limit {
+  color: #c44;
+  font-weight: bold;
 }
 
 .dialogue-input {
   width: 100%;
   box-sizing: border-box;
-  font-family: "Times New Roman", serif;
-  font-size: 0.9em;
+  font-family: monospace;
+  font-size: 0.85em;
   padding: 2px 4px;
   border: 1px solid #ccc;
   resize: vertical;
+}
+
+.dialogue-over {
+  border-color: #c44;
+  background: #fff4f4;
 }
 
 /* Trainer details (expanded) */

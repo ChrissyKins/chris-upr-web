@@ -34,18 +34,18 @@ function getPokemonId(name) {
   return obj?.id || 0;
 }
 
-// Convert ROM text control codes to readable form for editing
-// \n = newline in text box, \p = new paragraph, \l = scroll line
-function formatDialogue(text) {
-  if (!text) return '';
-  return text.replace(/\\p/g, '\n\n').replace(/\\n/g, '\n').replace(/\\l/g, '\n');
+// Game Boy text box: 18 chars per line, 2 lines per page
+const CHARS_PER_LINE = 18;
+
+// Split ROM dialogue into pages (separated by \p) and lines (separated by \n or \l)
+function splitPages(text) {
+  if (!text) return [''];
+  return text.split('\\p').map(page => page.replace(/\\n/g, '\n').replace(/\\l/g, '\n'));
 }
 
-// Convert edited text back to ROM text control codes
-function unformatDialogue(text) {
-  if (!text) return '';
-  // Double newlines → \p (paragraph), single newlines → \n (line break)
-  return text.replace(/\n\n/g, '\\p').replace(/\n/g, '\\n');
+// Rejoin edited pages back to ROM control codes
+function joinPages(pages) {
+  return pages.map(page => page.replace(/\n/g, '\\n')).join('\\p');
 }
 
 export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, onDialogueChange }) {
@@ -115,33 +115,21 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
           </div>
           {dialogueOpen && onDialogueChange && (
             <div className="trainer-dialogue">
-              <div className="trainer-dialogue-row">
-                <label>Before battle:</label>
-                <textarea
-                  className="dialogue-input"
-                  value={formatDialogue(trainer.seenText)}
-                  onChange={(e) => onDialogueChange(trainerIndex, 'seenText', unformatDialogue(e.target.value))}
-                  rows={2}
-                />
-              </div>
-              <div className="trainer-dialogue-row">
-                <label>After defeat:</label>
-                <textarea
-                  className="dialogue-input"
-                  value={formatDialogue(trainer.beatenText)}
-                  onChange={(e) => onDialogueChange(trainerIndex, 'beatenText', unformatDialogue(e.target.value))}
-                  rows={2}
-                />
-              </div>
-              <div className="trainer-dialogue-row">
-                <label>Idle (after beaten):</label>
-                <textarea
-                  className="dialogue-input"
-                  value={formatDialogue(trainer.afterText)}
-                  onChange={(e) => onDialogueChange(trainerIndex, 'afterText', unformatDialogue(e.target.value))}
-                  rows={2}
-                />
-              </div>
+              <DialogueField
+                label="Before battle"
+                text={trainer.seenText}
+                onChange={(text) => onDialogueChange(trainerIndex, 'seenText', text)}
+              />
+              <DialogueField
+                label="After defeat"
+                text={trainer.beatenText}
+                onChange={(text) => onDialogueChange(trainerIndex, 'beatenText', text)}
+              />
+              <DialogueField
+                label="Idle (after beaten)"
+                text={trainer.afterText}
+                onChange={(text) => onDialogueChange(trainerIndex, 'afterText', text)}
+              />
             </div>
           )}
           <div className="trainer-pokemon-list">
@@ -278,6 +266,81 @@ function TrainerPokemonSlot({ poke, defaultPoke, pokeIdx, trainerIndex, onPokemo
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function DialogueField({ label, text, onChange }) {
+  const pages = splitPages(text);
+
+  function handlePageChange(pageIndex, newValue) {
+    const updated = [...pages];
+    updated[pageIndex] = newValue;
+    onChange(joinPages(updated));
+  }
+
+  function addPage() {
+    onChange(joinPages([...pages, '']));
+  }
+
+  function removePage(pageIndex) {
+    if (pages.length <= 1) {
+      onChange(joinPages(['']));
+      return;
+    }
+    const updated = pages.filter((_, i) => i !== pageIndex);
+    onChange(joinPages(updated));
+  }
+
+  // Count characters per line for a page (split on \n)
+  function getLineInfo(page) {
+    const lines = page.split('\n');
+    return lines.map(line => ({
+      text: line,
+      len: line.length,
+      over: line.length > CHARS_PER_LINE,
+    }));
+  }
+
+  return (
+    <div className="dialogue-field">
+      <div className="dialogue-field-header">
+        <label>{label}:</label>
+        <a href="#" className="dialogue-add-page" onClick={(e) => {
+          e.preventDefault();
+          addPage();
+        }}>[+ page]</a>
+      </div>
+      {pages.map((page, i) => {
+        const lineInfo = getLineInfo(page);
+        const anyOver = lineInfo.some(l => l.over);
+        return (
+          <div key={i} className="dialogue-page">
+            <div className="dialogue-page-header">
+              <span className="dialogue-page-num">Page {i + 1}</span>
+              {pages.length > 1 && (
+                <a href="#" className="dialogue-remove-page" onClick={(e) => {
+                  e.preventDefault();
+                  removePage(i);
+                }}>[x]</a>
+              )}
+              <span className={`dialogue-line-counts ${anyOver ? 'over-limit' : ''}`}>
+                {lineInfo.map((l, li) => (
+                  <span key={li} className={l.over ? 'over-limit' : ''}>
+                    {li > 0 && ' / '}{l.len}/{CHARS_PER_LINE}
+                  </span>
+                ))}
+              </span>
+            </div>
+            <textarea
+              className={`dialogue-input ${anyOver ? 'dialogue-over' : ''}`}
+              value={page}
+              onChange={(e) => handlePageChange(i, e.target.value)}
+              rows={2}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
