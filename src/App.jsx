@@ -20,7 +20,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 6; // v6: re-merge dialogue (v5 baked in nulls from old data)
+const SAVE_VERSION = 7; // v7: re-merge with corrected dialogue (v6 had swapped seen/beaten)
 
 function loadSavedState() {
   try {
@@ -63,10 +63,9 @@ function loadSavedState() {
         name: nameMap[a.name] || a.name,
       }));
     }
-    // v6: merge trainer dialogue from game data into saved trainers
-    // Always re-merge defaults for any trainer that has null dialogue
-    // (v5 may have baked in nulls from older game data)
-    if ((saved.version || 1) < 6) {
+    // v7: merge trainer dialogue from game data into saved trainers
+    // Re-merge defaults to fix swapped seen/beaten text from earlier versions
+    if ((saved.version || 1) < 7) {
       const defaults = getDefaultCrystalTrainers();
       const defByIndex = {};
       for (const d of defaults) defByIndex[d.index] = d;
