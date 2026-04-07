@@ -20,7 +20,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 4; // v4: descriptive fishing names, starters under New Bark Town
+const SAVE_VERSION = 5; // v5: merge trainer dialogue from game data
 
 function loadSavedState() {
   try {
@@ -62,6 +62,24 @@ function loadSavedState() {
         ...a,
         name: nameMap[a.name] || a.name,
       }));
+    }
+    // v5: merge trainer dialogue from game data into saved trainers
+    if ((saved.version || 1) < 5) {
+      const defaults = getDefaultCrystalTrainers();
+      const defByIndex = {};
+      for (const d of defaults) defByIndex[d.index] = d;
+      saved.trainers = saved.trainers.map(t => {
+        const d = defByIndex[t.index];
+        if (d) {
+          return {
+            ...t,
+            seenText: t.seenText !== undefined ? t.seenText : (d.seenText || null),
+            beatenText: t.beatenText !== undefined ? t.beatenText : (d.beatenText || null),
+            afterText: t.afterText !== undefined ? t.afterText : (d.afterText || null),
+          };
+        }
+        return t;
+      });
     }
     saved.version = SAVE_VERSION;
     return saved;
