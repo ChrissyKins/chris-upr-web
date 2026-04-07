@@ -5,7 +5,7 @@ import FindReplace from './components/FindReplace';
 import TMEditor, { getDefaultTMs } from './components/TMEditor';
 import MoveTutorEditor, { getDefaultMoveTutors } from './components/MoveTutorEditor';
 import TradeEditor, { getDefaultTrades } from './components/TradeEditor';
-// import ShopEditor, { getDefaultShops } from './components/ShopEditor';
+import ShopEditor, { getDefaultShops } from './components/ShopEditor';
 import { getDefaultFieldItems } from './components/FieldItemEditor';
 import LearnsetEditor from './components/LearnsetEditor';
 import PokemonStatsEditor from './components/PokemonStatsEditor';
@@ -80,6 +80,7 @@ const EDITOR_TABS = [
   { id: 'tms', label: 'TMs' },
   { id: 'tutors', label: 'Move Tutors' },
   { id: 'trades', label: 'Trades' },
+  { id: 'shops', label: 'Shops' },
   { id: 'learnsets', label: 'Learnsets' },
   { id: 'stats', label: 'Stats / Types' },
   { id: 'evolutions', label: 'Evolutions' },
@@ -521,6 +522,13 @@ function App() {
           <TradeEditor
             trades={getExtraState('trades', getDefaultTrades)}
             onChange={(val) => setExtraState('trades', val)}
+          />
+        )}
+
+        {editorTab === 'shops' && (
+          <ShopEditor
+            shops={getExtraState('shops', getDefaultShops)}
+            onChange={(val) => setExtraState('shops', val)}
           />
         )}
 
