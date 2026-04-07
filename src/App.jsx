@@ -5,7 +5,7 @@ import FindReplace from './components/FindReplace';
 import TMEditor, { getDefaultTMs } from './components/TMEditor';
 import MoveTutorEditor, { getDefaultMoveTutors } from './components/MoveTutorEditor';
 import TradeEditor, { getDefaultTrades } from './components/TradeEditor';
-import ShopEditor, { getDefaultShops } from './components/ShopEditor';
+import ShopEditor, { getDefaultShops, getDefaultPrices } from './components/ShopEditor';
 import { getDefaultFieldItems } from './components/FieldItemEditor';
 import LearnsetEditor from './components/LearnsetEditor';
 import PokemonStatsEditor from './components/PokemonStatsEditor';
@@ -192,7 +192,7 @@ function App() {
     if (!areas) return;
     const json = exportChangesOnlyJSON(areas, trainers, extras);
     const hasContent = json.encounters || json.trainers || json.tms || json.moveTutors
-      || json.trades || json.shops || json.fieldItems || json.learnsets
+      || json.trades || json.shops || json.prices || json.fieldItems || json.learnsets
       || json.pokemonEdits || json.evolutionEdits;
     if (!hasContent) {
       alert('No changes detected - nothing to export.');
@@ -528,7 +528,9 @@ function App() {
         {editorTab === 'shops' && (
           <ShopEditor
             shops={getExtraState('shops', getDefaultShops)}
+            prices={getExtraState('prices', () => ({}))}
             onChange={(val) => setExtraState('shops', val)}
+            onPriceChange={(val) => setExtraState('prices', val)}
           />
         )}
 

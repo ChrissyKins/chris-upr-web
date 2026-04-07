@@ -107,6 +107,12 @@ export function exportJSON(areas, trainers, extras) {
         items: s.items,
       }));
     }
+    if (extras.prices && Object.keys(extras.prices).length > 0) {
+      result.prices = Object.entries(extras.prices).map(([item, price]) => ({
+        item: parseInt(item),
+        price,
+      }));
+    }
     if (extras.fieldItems && extras.fieldItems.length > 0) {
       result.fieldItems = extras.fieldItems.map(f => ({
         index: f.index,
@@ -260,6 +266,12 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
         items: s.items,
       }));
     }
+    if (extras.prices && Object.keys(extras.prices).length > 0) {
+      result.prices = Object.entries(extras.prices).map(([item, price]) => ({
+        item: parseInt(item),
+        price,
+      }));
+    }
     if (extras.fieldItems && extras.fieldItems.length > 0) {
       result.fieldItems = extras.fieldItems.map(f => ({
         index: f.index,
@@ -369,6 +381,12 @@ export function parseJSON(json) {
       name: s.name || '',
       items: s.items || [],
     }));
+  }
+  if (data.prices) {
+    extras.prices = {};
+    for (const p of data.prices) {
+      if (p.item > 0) extras.prices[p.item] = p.price;
+    }
   }
   if (data.fieldItems) {
     extras.fieldItems = data.fieldItems.map(f => ({

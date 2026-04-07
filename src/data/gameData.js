@@ -225,6 +225,7 @@ export function getGameItems() {
     _items = rawData.items.map(item => ({
       id: item.id,
       name: item.name,
+      price: item.price != null ? item.price : 0,
     }));
   }
   return _items;

@@ -9,7 +9,16 @@ export function getDefaultShops() {
   }));
 }
 
-export default function ShopEditor({ shops, onChange }) {
+export function getDefaultPrices() {
+  const items = getGameItems();
+  const prices = {};
+  for (const i of items) {
+    if (i.price != null) prices[i.id] = i.price;
+  }
+  return prices;
+}
+
+export default function ShopEditor({ shops, prices, onChange, onPriceChange }) {
   const [search, setSearch] = useState('');
   const defaults = getGameShops();
   const allItems = getGameItems();
@@ -20,6 +29,12 @@ export default function ShopEditor({ shops, onChange }) {
   // Track max item count per shop (from ROM defaults - can't grow beyond this)
   const maxItems = {};
   for (const d of defaults) maxItems[d.index] = d.items.length;
+
+  // Effective price: custom override or default
+  function getPrice(itemId) {
+    if (prices && prices[itemId] != null) return prices[itemId];
+    return itemById[itemId]?.price || 0;
+  }
 
   const filtered = search
     ? shops.filter(s =>
@@ -44,11 +59,8 @@ export default function ShopEditor({ shops, onChange }) {
     }));
   }
 
-  function handleRemoveItem(shopIdx, itemPos) {
-    onChange(shops.map(s => {
-      if (s.index !== shopIdx) return s;
-      return { ...s, items: s.items.filter((_, i) => i !== itemPos) };
-    }));
+  function handlePriceChange(itemId, newPrice) {
+    onPriceChange({ ...prices, [itemId]: newPrice });
   }
 
   if (shops.length === 0) {
@@ -64,7 +76,7 @@ export default function ShopEditor({ shops, onChange }) {
     <div className="extra-editor">
       <div className="extra-editor-header">
         <b>Shops</b> ({shops.length} shops)
-        {' '}<a href="#" onClick={(e) => { e.preventDefault(); onChange(getDefaultShops()); }}>[Reset All]</a>
+        {' '}<a href="#" onClick={(e) => { e.preventDefault(); onChange(getDefaultShops()); onPriceChange({}); }}>[Reset All]</a>
       </div>
       <input
         type="text"
@@ -92,7 +104,16 @@ export default function ShopEditor({ shops, onChange }) {
                     items={allItems}
                     onChange={(id) => handleItemChange(shop.index, i, id)}
                   />
-                  {' '}<a href="#" onClick={(e) => { e.preventDefault(); handleRemoveItem(shop.index, i); }}>(x)</a>
+                  <span className="shop-price">
+                    ¥<input
+                      type="number"
+                      className="price-input"
+                      value={getPrice(itemId)}
+                      min={0}
+                      max={65535}
+                      onChange={(e) => handlePriceChange(itemId, Math.min(65535, Math.max(0, parseInt(e.target.value) || 0)))}
+                    />
+                  </span>
                 </div>
               ))}
             </div>

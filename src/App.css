@@ -760,6 +760,20 @@ hr {
   gap: 2px;
 }
 
+.shop-price {
+  font-size: 0.85em;
+  color: #666;
+  white-space: nowrap;
+}
+
+.price-input {
+  width: 55px;
+  font-size: 0.85em;
+  padding: 1px 3px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
 /* ── Learnset / Stats / Evolution Editors ── */
 
 .learnset-picker {
