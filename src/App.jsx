@@ -20,7 +20,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 9; // v9: fix garbage afterText with content validation
+const SAVE_VERSION = 10; // v10: real idle text from already-beaten branch
 
 function loadSavedState() {
   try {
@@ -65,7 +65,7 @@ function loadSavedState() {
     }
     // v7: merge trainer dialogue from game data into saved trainers
     // Re-merge defaults to fix swapped seen/beaten text from earlier versions
-    if ((saved.version || 1) < 9) {
+    if ((saved.version || 1) < 10) {
       const defaults = getDefaultCrystalTrainers();
       const defByIndex = {};
       for (const d of defaults) defByIndex[d.index] = d;
