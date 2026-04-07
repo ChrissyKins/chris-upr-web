@@ -158,6 +158,10 @@ function isAreaChanged(area, defaultAreas) {
 function isTrainerChanged(trainer, defaultTrainers) {
   const def = defaultTrainers.find(d => d.index === trainer.index);
   if (!def) return true;
+  // Check dialogue changes
+  if ((trainer.seenText || '') !== (def.seenText || '')) return true;
+  if ((trainer.beatenText || '') !== (def.beatenText || '')) return true;
+  if ((trainer.afterText || '') !== (def.afterText || '')) return true;
   if (trainer.pokemon.length !== def.pokemon.length) return true;
   return trainer.pokemon.some((poke, i) => {
     const dp = def.pokemon[i];
@@ -216,21 +220,30 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
     };
   });
 
-  const jsonTrainers = changedTrainers.map(trainer => ({
-    index: trainer.index,
-    name: trainer.displayName,
-    ...(trainer.tag ? { tag: trainer.tag } : {}),
-    pokemon: trainer.pokemon.map(poke => {
-      const entry = {
-        slot: poke.slotNum,
-        pokemon: poke.isRandom || !poke.pokemonName ? 0 : nameToId(poke.pokemonName),
-        level: poke.level,
-      };
-      if (poke.item) entry.item = poke.item;
-      if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves.map(m => moveNameToId(m));
-      return entry;
-    }),
-  }));
+  const jsonTrainers = changedTrainers.map(trainer => {
+    const def = defaultTrainers.find(d => d.index === trainer.index);
+    const seenChanged = def && (trainer.seenText || '') !== (def.seenText || '');
+    const beatenChanged = def && (trainer.beatenText || '') !== (def.beatenText || '');
+    const afterChanged = def && (trainer.afterText || '') !== (def.afterText || '');
+    return {
+      index: trainer.index,
+      name: trainer.displayName,
+      ...(trainer.tag ? { tag: trainer.tag } : {}),
+      ...(seenChanged ? { seenText: trainer.seenText } : {}),
+      ...(beatenChanged ? { beatenText: trainer.beatenText } : {}),
+      ...(afterChanged ? { afterText: trainer.afterText } : {}),
+      pokemon: trainer.pokemon.map(poke => {
+        const entry = {
+          slot: poke.slotNum,
+          pokemon: poke.isRandom || !poke.pokemonName ? 0 : nameToId(poke.pokemonName),
+          level: poke.level,
+        };
+        if (poke.item) entry.item = poke.item;
+        if (poke.moves && poke.moves.length > 0) entry.moves = poke.moves.map(m => moveNameToId(m));
+        return entry;
+      }),
+    };
+  });
 
   const result = {
     format: 'pokemon-crystal-custom',
@@ -333,6 +346,9 @@ export function parseJSON(json) {
     index: trainer.index,
     displayName: trainer.name,
     tag: trainer.tag || null,
+    ...(trainer.seenText !== undefined ? { seenText: trainer.seenText } : {}),
+    ...(trainer.beatenText !== undefined ? { beatenText: trainer.beatenText } : {}),
+    ...(trainer.afterText !== undefined ? { afterText: trainer.afterText } : {}),
     pokemon: (trainer.pokemon || []).map(poke => {
       const resolved = idToName(poke.pokemon);
       return {

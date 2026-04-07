@@ -247,6 +247,17 @@ function App() {
     });
   }, []);
 
+  const handleTrainerDialogueChange = useCallback((trainerIndex, field, value) => {
+    setTrainers(prev => {
+      const next = [...prev];
+      const idx = next.findIndex(t => t.index === trainerIndex);
+      if (idx >= 0) {
+        next[idx] = { ...next[idx], [field]: value };
+      }
+      return next;
+    });
+  }, []);
+
   const handleFieldItemChange = useCallback((fieldItemIndex, newItemId) => {
     setExtras(prev => {
       const items = prev.fieldItems || getDefaultFieldItems();
@@ -499,6 +510,7 @@ function App() {
               onSlotChange={handleSlotChange}
               onResetArea={handleResetArea}
               onTrainerPokemonChange={handleTrainerPokemonChange}
+              onTrainerDialogueChange={handleTrainerDialogueChange}
               onFieldItemChange={handleFieldItemChange}
             />
           </>

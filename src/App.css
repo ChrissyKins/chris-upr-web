@@ -470,6 +470,36 @@ hr {
   color: #777;
 }
 
+/* Trainer dialogue editor */
+.trainer-dialogue {
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-left: 2px solid #b8a0d0;
+  background: #f8f4fc;
+}
+
+.trainer-dialogue-row {
+  margin-bottom: 4px;
+}
+
+.trainer-dialogue-row label {
+  display: block;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 1px;
+}
+
+.dialogue-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "Times New Roman", serif;
+  font-size: 0.9em;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  resize: vertical;
+}
+
 /* Trainer details (expanded) */
 .trainer-poke-details {
   margin: 4px 0 4px 20px;

@@ -63,6 +63,9 @@ export function getGameTrainers() {
       fullName: t.fullName,
       displayName: t.fullName || `${t.class || ''} ${t.name || ''}`.trim(),
       tag: t.tag,
+      seenText: t.seenText || null,
+      beatenText: t.beatenText || null,
+      afterText: t.afterText || null,
       pokemon: t.pokemon.map((p, i) => {
         const pokeName = resolveRomName(p.pokemon);
         // Use ROM moves if present, otherwise compute default moveset from learnset

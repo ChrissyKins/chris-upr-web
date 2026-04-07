@@ -129,7 +129,7 @@ function getEncounterLabel(areaName) {
   return areaName;
 }
 
-export default function LocationCarousel({ areas, trainers, fieldItems, onSlotChange, onResetArea, onTrainerPokemonChange, onFieldItemChange }) {
+export default function LocationCarousel({ areas, trainers, fieldItems, onSlotChange, onResetArea, onTrainerPokemonChange, onTrainerDialogueChange, onFieldItemChange }) {
   const groups = useMemo(() => groupAreasByLocation(areas, trainers, fieldItems), [areas, trainers, fieldItems]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const globalFilters = usePokemonFilters();
@@ -287,6 +287,7 @@ export default function LocationCarousel({ areas, trainers, fieldItems, onSlotCh
                 trainer={trainer}
                 trainerIndex={trainer.index}
                 onPokemonChange={onTrainerPokemonChange}
+                onDialogueChange={onTrainerDialogueChange}
               />
             ))}
           </div>

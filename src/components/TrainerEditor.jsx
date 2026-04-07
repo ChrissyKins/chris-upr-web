@@ -34,7 +34,22 @@ function getPokemonId(name) {
   return obj?.id || 0;
 }
 
-export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange }) {
+// Convert ROM text control codes to readable form for editing
+// \n = newline in text box, \p = new paragraph, \l = scroll line
+function formatDialogue(text) {
+  if (!text) return '';
+  return text.replace(/\\p/g, '\n\n').replace(/\\n/g, '\n').replace(/\\l/g, '\n');
+}
+
+// Convert edited text back to ROM text control codes
+function unformatDialogue(text) {
+  if (!text) return '';
+  // Double newlines → \p (paragraph), single newlines → \n (line break)
+  return text.replace(/\n\n/g, '\\p').replace(/\n/g, '\\n');
+}
+
+export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, onDialogueChange }) {
+  const [dialogueOpen, setDialogueOpen] = useState(false);
   const tagLabel = trainer.tag ? ` [${trainer.tag}]` : '';
   const spriteUrl = getTrainerSpriteUrl(trainer.classId);
   const globalFilters = usePokemonFilters();
@@ -88,7 +103,49 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange }
             <span className="trainer-tag">{tagLabel}</span>
             {' '}
             <a href="#" onClick={handleRandomize}>[Randomize]</a>
+            {(trainer.seenText || trainer.beatenText || trainer.afterText) && onDialogueChange && (
+              <>
+                {' '}
+                <a href="#" className="trainer-expand-btn" onClick={(e) => {
+                  e.preventDefault();
+                  setDialogueOpen(!dialogueOpen);
+                }}>{dialogueOpen ? '[-Dialogue]' : '[+Dialogue]'}</a>
+              </>
+            )}
           </div>
+          {dialogueOpen && onDialogueChange && (
+            <div className="trainer-dialogue">
+              <div className="trainer-dialogue-row">
+                <label>Before battle:</label>
+                <textarea
+                  className="dialogue-input"
+                  value={formatDialogue(trainer.seenText)}
+                  onChange={(e) => onDialogueChange(trainerIndex, 'seenText', unformatDialogue(e.target.value))}
+                  rows={2}
+                />
+              </div>
+              <div className="trainer-dialogue-row">
+                <label>After defeat:</label>
+                <textarea
+                  className="dialogue-input"
+                  value={formatDialogue(trainer.beatenText)}
+                  onChange={(e) => onDialogueChange(trainerIndex, 'beatenText', unformatDialogue(e.target.value))}
+                  rows={2}
+                />
+              </div>
+              {trainer.afterText != null && (
+                <div className="trainer-dialogue-row">
+                  <label>Idle (after beaten):</label>
+                  <textarea
+                    className="dialogue-input"
+                    value={formatDialogue(trainer.afterText)}
+                    onChange={(e) => onDialogueChange(trainerIndex, 'afterText', unformatDialogue(e.target.value))}
+                    rows={2}
+                  />
+                </div>
+              )}
+            </div>
+          )}
           <div className="trainer-pokemon-list">
             {trainer.pokemon.map((poke, i) => {
               const defaults = getDefaultTrainerPokemon(trainerIndex);
