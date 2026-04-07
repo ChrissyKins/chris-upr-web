@@ -17,6 +17,10 @@ export default function ShopEditor({ shops, onChange }) {
   const itemById = {};
   for (const i of allItems) itemById[i.id] = i;
 
+  // Track max item count per shop (from ROM defaults - can't grow beyond this)
+  const maxItems = {};
+  for (const d of defaults) maxItems[d.index] = d.items.length;
+
   const filtered = search
     ? shops.filter(s =>
         (s.name && s.name.toLowerCase().includes(search.toLowerCase())) ||
@@ -70,11 +74,15 @@ export default function ShopEditor({ shops, onChange }) {
         onChange={e => setSearch(e.target.value)}
       />
       <div className="shops-list">
-        {filtered.map(shop => (
+        {filtered.map(shop => {
+          const max = maxItems[shop.index] || 0;
+          const atMax = shop.items.length >= max;
+          return (
           <div key={shop.index} className="shop-row">
             <div className="shop-header">
               <b>{shop.name || `Shop #${shop.index}`}</b>
-              {' '}<a href="#" onClick={(e) => { e.preventDefault(); handleAddItem(shop.index); }}>[+ Add Item]</a>
+              {' '}({shop.items.length}/{max} slots)
+              {!atMax && <>{' '}<a href="#" onClick={(e) => { e.preventDefault(); handleAddItem(shop.index); }}>[+ Add Item]</a></>}
             </div>
             <div className="shop-items">
               {shop.items.map((itemId, i) => (
@@ -89,7 +97,7 @@ export default function ShopEditor({ shops, onChange }) {
               ))}
             </div>
           </div>
-        ))}
+        );})}
       </div>
     </div>
   );
