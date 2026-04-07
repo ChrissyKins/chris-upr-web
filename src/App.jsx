@@ -20,7 +20,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 5; // v5: merge trainer dialogue from game data
+const SAVE_VERSION = 6; // v6: re-merge dialogue (v5 baked in nulls from old data)
 
 function loadSavedState() {
   try {
@@ -63,8 +63,10 @@ function loadSavedState() {
         name: nameMap[a.name] || a.name,
       }));
     }
-    // v5: merge trainer dialogue from game data into saved trainers
-    if ((saved.version || 1) < 5) {
+    // v6: merge trainer dialogue from game data into saved trainers
+    // Always re-merge defaults for any trainer that has null dialogue
+    // (v5 may have baked in nulls from older game data)
+    if ((saved.version || 1) < 6) {
       const defaults = getDefaultCrystalTrainers();
       const defByIndex = {};
       for (const d of defaults) defByIndex[d.index] = d;
@@ -73,9 +75,9 @@ function loadSavedState() {
         if (d) {
           return {
             ...t,
-            seenText: t.seenText !== undefined ? t.seenText : (d.seenText || null),
-            beatenText: t.beatenText !== undefined ? t.beatenText : (d.beatenText || null),
-            afterText: t.afterText !== undefined ? t.afterText : (d.afterText || null),
+            seenText: t.seenText || d.seenText || null,
+            beatenText: t.beatenText || d.beatenText || null,
+            afterText: t.afterText || d.afterText || null,
           };
         }
         return t;
