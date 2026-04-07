@@ -103,7 +103,7 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
             <span className="trainer-tag">{tagLabel}</span>
             {' '}
             <a href="#" onClick={handleRandomize}>[Randomize]</a>
-            {(trainer.seenText || trainer.beatenText || trainer.afterText) && onDialogueChange && (
+            {onDialogueChange && (
               <>
                 {' '}
                 <a href="#" className="trainer-expand-btn" onClick={(e) => {
@@ -133,17 +133,15 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
                   rows={2}
                 />
               </div>
-              {trainer.afterText != null && (
-                <div className="trainer-dialogue-row">
-                  <label>Idle (after beaten):</label>
-                  <textarea
-                    className="dialogue-input"
-                    value={formatDialogue(trainer.afterText)}
-                    onChange={(e) => onDialogueChange(trainerIndex, 'afterText', unformatDialogue(e.target.value))}
-                    rows={2}
-                  />
-                </div>
-              )}
+              <div className="trainer-dialogue-row">
+                <label>Idle (after beaten):</label>
+                <textarea
+                  className="dialogue-input"
+                  value={formatDialogue(trainer.afterText)}
+                  onChange={(e) => onDialogueChange(trainerIndex, 'afterText', unformatDialogue(e.target.value))}
+                  rows={2}
+                />
+              </div>
             </div>
           )}
           <div className="trainer-pokemon-list">
