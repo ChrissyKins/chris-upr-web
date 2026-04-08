@@ -540,7 +540,7 @@ hr {
 }
 
 .dialogue-input {
-  width: 100%;
+  width: 20ch;
   box-sizing: border-box;
   font-family: monospace;
   font-size: 0.85em;

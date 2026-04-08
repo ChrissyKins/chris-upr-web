@@ -380,7 +380,7 @@ function DialogueField({ label, text, onChange }) {
               className={`dialogue-input ${anyOver ? 'dialogue-over' : ''}`}
               value={page}
               onChange={(e) => handlePageChange(i, e.target.value)}
-              rows={2}
+              rows={3}
             />
           </div>
         );
