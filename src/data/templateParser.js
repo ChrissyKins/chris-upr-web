@@ -294,6 +294,14 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
   if (jsonTrainers.length > 0) result.trainers = jsonTrainers;
   if (changedClassNames.length > 0) result.classNames = changedClassNames;
 
+  // Export changed class sprites
+  if (extras && extras.classNames) {
+    const changedSprites = extras.classNames
+      .filter(c => c.spriteFrom != null)
+      .map(c => ({ classId: c.id, spriteFrom: c.spriteFrom }));
+    if (changedSprites.length > 0) result.classSprites = changedSprites;
+  }
+
   // Extras already only export if they have content
   if (extras) {
     if (extras.tms && extras.tms.length > 0) {

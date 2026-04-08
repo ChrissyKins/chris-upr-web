@@ -458,6 +458,44 @@ hr {
   width: 14ch;
 }
 .trainer-name-reset { font-size: 0.8em; color: #888; }
+.trainer-name-sprite-wrap {
+  position: relative;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.trainer-sprite-edit-hint {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.6em;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+}
+.trainer-name-sprite-wrap:hover .trainer-sprite-edit-hint { display: block; }
+.sprite-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+  max-width: 400px;
+}
+.sprite-picker-option {
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.7;
+}
+.sprite-picker-option:hover { opacity: 1; border-color: #66a; }
+.sprite-picker-option.selected { border-color: #33c; opacity: 1; }
 
 .trainer-tag {
   font-size: 0.8em;

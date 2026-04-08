@@ -212,7 +212,7 @@ function App() {
   function handleExport() {
     if (!areas) return;
     const json = exportChangesOnlyJSON(areas, trainers, extras);
-    const hasContent = json.encounters || json.trainers || json.classNames || json.tms || json.moveTutors
+    const hasContent = json.encounters || json.trainers || json.classNames || json.classSprites || json.tms || json.moveTutors
       || json.trades || json.shops || json.prices || json.fieldItems || json.learnsets
       || json.pokemonEdits || json.evolutionEdits;
     if (!hasContent) {

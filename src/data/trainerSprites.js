@@ -77,3 +77,22 @@ export function getTrainerSpriteUrl(classId) {
   if (!filename) return null;
   return `${BASE_URL}${filename}.png`;
 }
+
+let _allSprites = null;
+export function getAllSpriteNames() {
+  if (!_allSprites) {
+    // Deduplicate sprites (some classes share the same sprite file)
+    const seen = new Set();
+    _allSprites = [];
+    for (const [id, filename] of Object.entries(CLASS_SPRITES)) {
+      if (seen.has(filename)) continue;
+      seen.add(filename);
+      _allSprites.push({
+        id: parseInt(id),
+        name: filename.replace(/_/g, ' '),
+        url: `${BASE_URL}${filename}.png`,
+      });
+    }
+  }
+  return _allSprites;
+}
