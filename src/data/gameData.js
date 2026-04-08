@@ -101,6 +101,17 @@ export function getGameTrainers() {
         };
       }),
     }));
+
+    // Filter out phone rematches: within each class, keep only the first
+    // trainer of each name (lowest index = base team). Rematches are
+    // higher-level teams for the same NPC, only accessible via Pokegear.
+    const seen = new Set();
+    _trainers = _trainers.filter(t => {
+      const key = t.classId + ':' + t.name;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
   return _trainers.map(t => ({ ...t, pokemon: t.pokemon.map(p => ({ ...p })) }));
 }
