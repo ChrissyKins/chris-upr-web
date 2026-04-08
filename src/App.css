@@ -422,6 +422,22 @@ hr {
   margin-bottom: 2px;
 }
 
+.trainer-name-input {
+  font-weight: bold;
+  font-size: 1em;
+  font-family: inherit;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0 2px;
+  width: 10ch;
+}
+.trainer-name-input:hover,
+.trainer-name-input:focus {
+  border-color: #aaa;
+  background: #fff;
+  outline: none;
+}
+
 .trainer-tag {
   font-size: 0.8em;
   color: #666;

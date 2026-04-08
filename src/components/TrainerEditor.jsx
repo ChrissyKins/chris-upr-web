@@ -132,7 +132,12 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
         )}
         <div className="trainer-content">
           <div className="trainer-name-line">
-            <b>{trainer.displayName}</b>
+            <b><input
+              type="text"
+              className="trainer-name-input"
+              value={trainer.name}
+              onChange={(e) => onDialogueChange && onDialogueChange(trainerIndex, 'name', e.target.value)}
+            /></b>
             <span className="trainer-tag">{tagLabel}</span>
             {' '}
             <a href="#" onClick={handleRandomize}>[Randomize]</a>

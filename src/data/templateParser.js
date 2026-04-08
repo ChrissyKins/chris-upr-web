@@ -225,10 +225,12 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
     const seenChanged = def && (trainer.seenText || '') !== (def.seenText || '');
     const beatenChanged = def && (trainer.beatenText || '') !== (def.beatenText || '');
     const afterChanged = def && (trainer.afterText || '') !== (def.afterText || '');
+    const nameChanged = def && trainer.name !== def.name;
     return {
       index: trainer.index,
       name: trainer.displayName,
       ...(trainer.tag ? { tag: trainer.tag } : {}),
+      ...(nameChanged ? { trainerName: trainer.name } : {}),
       ...(seenChanged ? { seenText: trainer.seenText } : {}),
       ...(beatenChanged ? { beatenText: trainer.beatenText } : {}),
       ...(afterChanged ? { afterText: trainer.afterText } : {}),

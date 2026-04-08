@@ -56,9 +56,15 @@ export function getGamePokemon() {
 
 export function getGameTrainers() {
   if (!_trainers) {
-    _trainers = rawData.trainers.map(t => ({
+    _trainers = rawData.trainers.map(t => {
+      // Class prefix = fullName minus the trainer name at the end
+      const classPrefix = t.fullName && t.name
+        ? t.fullName.slice(0, t.fullName.length - t.name.length).trim()
+        : '';
+      return {
       index: t.index,
       classId: t.classId,
+      classPrefix,
       name: t.name,
       fullName: t.fullName,
       displayName: t.fullName || `${t.class || ''} ${t.name || ''}`.trim(),
@@ -100,7 +106,7 @@ export function getGameTrainers() {
           moves,
         };
       }),
-    }));
+    }; });
 
     // Filter out phone rematches: within each class, keep only the first
     // trainer of each name (lowest index = base team). Rematches are

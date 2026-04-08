@@ -271,7 +271,11 @@ function App() {
       const next = [...prev];
       const idx = next.findIndex(t => t.index === trainerIndex);
       if (idx >= 0) {
-        next[idx] = { ...next[idx], [field]: value };
+        const updated = { ...next[idx], [field]: value };
+        if (field === 'name') {
+          updated.displayName = `${updated.classPrefix} ${value}`.trim();
+        }
+        next[idx] = updated;
       }
       return next;
     });
