@@ -409,7 +409,7 @@ export function getGameFieldItems() {
 // ── Class Names ──
 
 export function getGameClassNames() {
-  return (rawData.classNames || []).map(c => ({ id: c.id, name: c.name }));
+  return (rawData.trainerClasses || []).map(c => ({ id: c.id, name: c.name }));
 }
 
 // ── Move Tutors ──
