@@ -1,5 +1,5 @@
 import { POKEMON_BY_NAME, POKEMON_BY_ID } from './pokemon';
-import { expandTimeOfDay, getGameMoves, getPhoneRematchMap } from './gameData';
+import { expandTimeOfDay, getGameMoves, getPhoneRematchMap, getGameClassNames } from './gameData';
 import { getDefaultCrystalEncounters, getDefaultCrystalTrainers } from './crystalEncounters';
 
 let _moveNameToId = null;
@@ -277,15 +277,15 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
     version: 3,
   };
 
-  // Export changed class names
+  // Export changed class names from extras
+  const origClassNames = getGameClassNames();
   const changedClassNames = [];
-  const seenClasses = new Set();
-  for (const trainer of (trainers || [])) {
-    if (seenClasses.has(trainer.classId)) continue;
-    seenClasses.add(trainer.classId);
-    const def = defaultTrainers.find(d => d.classId === trainer.classId);
-    if (def && trainer.classPrefix !== def.classPrefix) {
-      changedClassNames.push({ classId: trainer.classId, name: trainer.classPrefix });
+  if (extras && extras.classNames) {
+    for (const cls of extras.classNames) {
+      const orig = origClassNames.find(c => c.id === cls.id);
+      if (orig && cls.name !== orig.name) {
+        changedClassNames.push({ classId: cls.id, name: cls.name });
+      }
     }
   }
 

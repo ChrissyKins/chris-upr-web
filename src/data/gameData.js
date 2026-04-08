@@ -406,6 +406,12 @@ export function getGameFieldItems() {
   return _fieldItems || [];
 }
 
+// ── Class Names ──
+
+export function getGameClassNames() {
+  return (rawData.classNames || []).map(c => ({ id: c.id, name: c.name }));
+}
+
 // ── Move Tutors ──
 
 let _moveTutors = null;

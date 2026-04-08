@@ -132,12 +132,7 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
         )}
         <div className="trainer-content">
           <div className="trainer-name-line">
-            <b><input
-              type="text"
-              className="trainer-class-input"
-              value={trainer.classPrefix}
-              onChange={(e) => onDialogueChange && onDialogueChange(trainerIndex, 'classPrefix', e.target.value)}
-            />{' '}<input
+            <b><span className="trainer-class-label">{trainer.classPrefix}</span>{' '}<input
               type="text"
               className="trainer-name-input"
               value={trainer.name}

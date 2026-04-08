@@ -10,6 +10,7 @@ import { getDefaultFieldItems } from './components/FieldItemEditor';
 import LearnsetEditor from './components/LearnsetEditor';
 import PokemonStatsEditor from './components/PokemonStatsEditor';
 import EvolutionEditor from './components/EvolutionEditor';
+import TrainerNamesEditor, { getDefaultClassNames } from './components/TrainerNamesEditor';
 import { exportChangesOnlyJSON, parseJSON } from './data/templateParser';
 import { getDefaultCrystalEncounters, getDefaultSlotsForArea, getDefaultCrystalTrainers } from './data/crystalEncounters';
 import { ALL_TYPES } from './data/pokemonFilters';
@@ -96,6 +97,7 @@ function saveState(areas, trainers, extras) {
 
 const EDITOR_TABS = [
   { id: 'encounters', label: 'Encounters / Trainers' },
+  { id: 'names', label: 'Names' },
   { id: 'tms', label: 'TMs' },
   { id: 'tutors', label: 'Move Tutors' },
   { id: 'trades', label: 'Trades' },
@@ -210,7 +212,7 @@ function App() {
   function handleExport() {
     if (!areas) return;
     const json = exportChangesOnlyJSON(areas, trainers, extras);
-    const hasContent = json.encounters || json.trainers || json.tms || json.moveTutors
+    const hasContent = json.encounters || json.trainers || json.classNames || json.tms || json.moveTutors
       || json.trades || json.shops || json.prices || json.fieldItems || json.learnsets
       || json.pokemonEdits || json.evolutionEdits;
     if (!hasContent) {
@@ -271,22 +273,11 @@ function App() {
       const next = [...prev];
       const idx = next.findIndex(t => t.index === trainerIndex);
       if (idx < 0) return prev;
-
-      if (field === 'classPrefix') {
-        // Class name is shared — update all trainers with the same classId
-        const classId = next[idx].classId;
-        for (let i = 0; i < next.length; i++) {
-          if (next[i].classId === classId) {
-            next[i] = { ...next[i], classPrefix: value, displayName: `${value} ${next[i].name}`.trim() };
-          }
-        }
-      } else {
-        const updated = { ...next[idx], [field]: value };
-        if (field === 'name') {
-          updated.displayName = `${updated.classPrefix} ${value}`.trim();
-        }
-        next[idx] = updated;
+      const updated = { ...next[idx], [field]: value };
+      if (field === 'name') {
+        updated.displayName = `${updated.classPrefix} ${value}`.trim();
       }
+      next[idx] = updated;
       return next;
     });
   }, []);
@@ -547,6 +538,25 @@ function App() {
               onFieldItemChange={handleFieldItemChange}
             />
           </>
+        )}
+
+        {editorTab === 'names' && (
+          <TrainerNamesEditor
+            classNames={getExtraState('classNames', getDefaultClassNames)}
+            onChange={(newNames) => {
+              setExtraState('classNames', newNames);
+              // Propagate to all trainers' classPrefix + displayName
+              const nameMap = {};
+              for (const c of newNames) nameMap[c.id] = c.name;
+              setTrainers(prev => prev.map(t => {
+                const newPrefix = nameMap[t.classId];
+                if (newPrefix !== undefined && newPrefix !== t.classPrefix) {
+                  return { ...t, classPrefix: newPrefix, displayName: `${newPrefix} ${t.name}`.trim() };
+                }
+                return t;
+              }));
+            }}
+          />
         )}
 
         {editorTab === 'tms' && (

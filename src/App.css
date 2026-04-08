@@ -422,7 +422,6 @@ hr {
   margin-bottom: 2px;
 }
 
-.trainer-class-input,
 .trainer-name-input {
   font-weight: bold;
   font-size: 1em;
@@ -430,17 +429,35 @@ hr {
   border: 1px solid transparent;
   background: transparent;
   padding: 0 2px;
+  width: 10ch;
 }
-.trainer-class-input { width: 12ch; }
-.trainer-name-input { width: 10ch; }
-.trainer-class-input:hover,
-.trainer-class-input:focus,
 .trainer-name-input:hover,
 .trainer-name-input:focus {
   border-color: #aaa;
   background: #fff;
   outline: none;
 }
+
+/* Names tab */
+.trainer-names-editor { max-width: 500px; }
+.trainer-names-header { margin-bottom: 8px; }
+.trainer-names-list { display: flex; flex-direction: column; gap: 2px; }
+.trainer-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+}
+.trainer-name-row.trainer-name-changed { background: #ffe; }
+.trainer-name-sprite { width: 40px; height: 40px; image-rendering: pixelated; }
+.trainer-name-class-input {
+  font-family: monospace;
+  font-size: 0.95em;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  width: 14ch;
+}
+.trainer-name-reset { font-size: 0.8em; color: #888; }
 
 .trainer-tag {
   font-size: 0.8em;
