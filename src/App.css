@@ -422,6 +422,7 @@ hr {
   margin-bottom: 2px;
 }
 
+.trainer-class-input,
 .trainer-name-input {
   font-weight: bold;
   font-size: 1em;
@@ -429,8 +430,11 @@ hr {
   border: 1px solid transparent;
   background: transparent;
   padding: 0 2px;
-  width: 10ch;
 }
+.trainer-class-input { width: 12ch; }
+.trainer-name-input { width: 10ch; }
+.trainer-class-input:hover,
+.trainer-class-input:focus,
 .trainer-name-input:hover,
 .trainer-name-input:focus {
   border-color: #aaa;

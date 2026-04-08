@@ -270,7 +270,17 @@ function App() {
     setTrainers(prev => {
       const next = [...prev];
       const idx = next.findIndex(t => t.index === trainerIndex);
-      if (idx >= 0) {
+      if (idx < 0) return prev;
+
+      if (field === 'classPrefix') {
+        // Class name is shared — update all trainers with the same classId
+        const classId = next[idx].classId;
+        for (let i = 0; i < next.length; i++) {
+          if (next[i].classId === classId) {
+            next[i] = { ...next[i], classPrefix: value, displayName: `${value} ${next[i].name}`.trim() };
+          }
+        }
+      } else {
         const updated = { ...next[idx], [field]: value };
         if (field === 'name') {
           updated.displayName = `${updated.classPrefix} ${value}`.trim();

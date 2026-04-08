@@ -277,9 +277,22 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
     version: 3,
   };
 
+  // Export changed class names
+  const changedClassNames = [];
+  const seenClasses = new Set();
+  for (const trainer of (trainers || [])) {
+    if (seenClasses.has(trainer.classId)) continue;
+    seenClasses.add(trainer.classId);
+    const def = defaultTrainers.find(d => d.classId === trainer.classId);
+    if (def && trainer.classPrefix !== def.classPrefix) {
+      changedClassNames.push({ classId: trainer.classId, name: trainer.classPrefix });
+    }
+  }
+
   // Only include encounters/trainers if there are changes
   if (jsonAreas.length > 0) result.encounters = jsonAreas;
   if (jsonTrainers.length > 0) result.trainers = jsonTrainers;
+  if (changedClassNames.length > 0) result.classNames = changedClassNames;
 
   // Extras already only export if they have content
   if (extras) {
