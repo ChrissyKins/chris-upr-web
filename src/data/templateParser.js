@@ -1,5 +1,5 @@
 import { POKEMON_BY_NAME, POKEMON_BY_ID } from './pokemon';
-import { expandTimeOfDay, getGameMoves } from './gameData';
+import { expandTimeOfDay, getGameMoves, getPhoneRematchMap } from './gameData';
 import { getDefaultCrystalEncounters, getDefaultCrystalTrainers } from './crystalEncounters';
 
 let _moveNameToId = null;
@@ -244,6 +244,31 @@ export function exportChangesOnlyJSON(areas, trainers, extras) {
       }),
     };
   });
+
+  // Propagate Pokemon species changes to phone rematches.
+  // Rematches keep their own levels/items/moves but get the same species.
+  const rematchMap = getPhoneRematchMap();
+  const rematchEntries = [];
+  for (const jt of jsonTrainers) {
+    const rematches = rematchMap[jt.index];
+    if (!rematches) continue;
+    for (const rm of rematches) {
+      rematchEntries.push({
+        index: rm.index,
+        pokemon: rm.pokemon.map((rp, i) => {
+          const basePoke = jt.pokemon[i] || jt.pokemon[jt.pokemon.length - 1];
+          return {
+            slot: rp.slotNum,
+            pokemon: basePoke.pokemon, // species from base trainer
+            level: rp.level,           // keep rematch level
+            ...(rp.item ? { item: rp.item } : {}),
+            ...(rp.moves ? { moves: rp.moves } : {}),
+          };
+        }),
+      });
+    }
+  }
+  jsonTrainers.push(...rematchEntries);
 
   const result = {
     format: 'pokemon-crystal-custom',

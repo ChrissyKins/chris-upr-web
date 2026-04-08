@@ -116,6 +116,39 @@ export function getGameTrainers() {
   return _trainers.map(t => ({ ...t, pokemon: t.pokemon.map(p => ({ ...p })) }));
 }
 
+/**
+ * Returns a map of base trainer index → [rematch trainer indices].
+ * Rematches share the same classId + name as the base but have higher indices.
+ */
+let _rematchMap = null;
+export function getPhoneRematchMap() {
+  if (!_rematchMap) {
+    _rematchMap = {};
+    const byKey = {};
+    for (const t of rawData.trainers) {
+      const key = t.classId + ':' + t.name;
+      if (!byKey[key]) {
+        byKey[key] = [];
+      }
+      byKey[key].push(t);
+    }
+    for (const group of Object.values(byKey)) {
+      if (group.length <= 1) continue;
+      const base = group[0];
+      _rematchMap[base.index] = group.slice(1).map(t => ({
+        index: t.index,
+        pokemon: t.pokemon.map((p, i) => ({
+          slotNum: i + 1,
+          level: p.level,
+          item: p.item || null,
+          moves: p.moves || null,
+        })),
+      }));
+    }
+  }
+  return _rematchMap;
+}
+
 export function getDefaultTrainerPokemon(trainerIndex) {
   if (!_trainers) getGameTrainers();
   const t = _trainers.find(t => t.index === trainerIndex);
