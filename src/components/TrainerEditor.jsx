@@ -148,21 +148,33 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
           </div>
           {dialogueOpen && onDialogueChange && (
             <div className="trainer-dialogue">
-              <DialogueField
-                label="Before battle"
-                text={trainer.seenText}
-                onChange={(text) => onDialogueChange(trainerIndex, 'seenText', text)}
-              />
-              <DialogueField
-                label="After defeat"
-                text={trainer.beatenText}
-                onChange={(text) => onDialogueChange(trainerIndex, 'beatenText', text)}
-              />
-              <DialogueField
-                label="Idle (after beaten)"
-                text={trainer.afterText}
-                onChange={(text) => onDialogueChange(trainerIndex, 'afterText', text)}
-              />
+              {trainer.seenText != null ? (
+                <DialogueField
+                  label="Before battle"
+                  text={trainer.seenText}
+                  onChange={(text) => onDialogueChange(trainerIndex, 'seenText', text)}
+                />
+              ) : (
+                <div className="dialogue-field"><label>Before battle:</label> <span className="dialogue-no-data">(no data)</span></div>
+              )}
+              {trainer.beatenText != null ? (
+                <DialogueField
+                  label="After defeat"
+                  text={trainer.beatenText}
+                  onChange={(text) => onDialogueChange(trainerIndex, 'beatenText', text)}
+                />
+              ) : (
+                <div className="dialogue-field"><label>After defeat:</label> <span className="dialogue-no-data">(no data)</span></div>
+              )}
+              {trainer.afterText != null ? (
+                <DialogueField
+                  label="Idle (after beaten)"
+                  text={trainer.afterText}
+                  onChange={(text) => onDialogueChange(trainerIndex, 'afterText', text)}
+                />
+              ) : (
+                <div className="dialogue-field"><label>Idle (after beaten):</label> <span className="dialogue-no-data">(no data)</span></div>
+              )}
             </div>
           )}
           <div className="trainer-pokemon-list">
