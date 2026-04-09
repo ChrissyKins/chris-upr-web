@@ -555,7 +555,6 @@ function App() {
             classNames={getExtraState('classNames', getDefaultClassNames)}
             onChange={(newNames) => {
               setExtraState('classNames', newNames);
-              // Propagate to all trainers' classPrefix + displayName
               const nameMap = {};
               for (const c of newNames) nameMap[c.id] = c.name;
               setTrainers(prev => prev.map(t => {
@@ -566,6 +565,8 @@ function App() {
                 return t;
               }));
             }}
+            pokemonEdits={getExtraState('pokemonEdits', () => [])}
+            onPokemonEditsChange={(val) => setExtraState('pokemonEdits', val)}
           />
         )}
 

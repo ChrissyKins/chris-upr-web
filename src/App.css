@@ -458,6 +458,10 @@ hr {
   width: 14ch;
 }
 .trainer-name-reset { font-size: 0.8em; color: #888; }
+.names-tab-switcher { margin-bottom: 8px; font-size: 0.95em; }
+.names-tab-switcher a { text-decoration: none; color: #666; padding: 2px 6px; }
+.names-tab-switcher a.active { font-weight: bold; color: #333; border-bottom: 2px solid #33c; }
+.pokemon-name-id { font-size: 0.8em; color: #999; width: 3ch; text-align: right; }
 .trainer-name-sprite-wrap {
   position: relative;
   cursor: pointer;

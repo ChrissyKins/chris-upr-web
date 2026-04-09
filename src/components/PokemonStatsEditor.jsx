@@ -78,17 +78,6 @@ export default function PokemonStatsEditor({ edits, onChange }) {
 
           <div className="stats-edit-section">
             <div className="type-edit-row">
-              <span className="trade-label">Name:</span>
-              <input
-                type="text"
-                className="trainer-name-class-input"
-                value={getField('name') || ''}
-                onChange={(e) => handleFieldChange('name', e.target.value || null)}
-                maxLength={10}
-              />
-              <span style={{ fontSize: '0.7em', color: '#999', marginLeft: 4 }}>(max 10 chars)</span>
-            </div>
-            <div className="type-edit-row">
               <span className="trade-label">Type 1:</span>
               <select
                 value={getField('type1') || ''}
