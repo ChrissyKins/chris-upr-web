@@ -119,6 +119,10 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, clas
     for (const t of others) {
       onDialogueChange(t.index, 'classPrefix', newPrefix);
     }
+    // Sync to classNames extras so Names tab reflects the change
+    if (onClassNamesChange && classNames) {
+      onClassNamesChange(classNames.map(c => c.id === trainer.classId ? { ...c, name: newPrefix } : c));
+    }
   }
 
   function handleRandomize(e) {
