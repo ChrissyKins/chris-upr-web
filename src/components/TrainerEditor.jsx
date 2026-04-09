@@ -83,16 +83,18 @@ function joinPages(pages) {
 
 export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPokemonChange, onDialogueChange }) {
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [linked, setLinked] = useState(true);
   const tagLabel = trainer.tag ? ` [${trainer.tag}]` : '';
   const spriteUrl = getTrainerSpriteUrl(trainer.classId);
   const globalFilters = usePokemonFilters();
 
-  // Find linked rival variants: same tag prefix (e.g. RIVAL1-1, RIVAL1-2, RIVAL1-0)
+  // Linked state is stored on the trainer object so other trainers can see it
+  const linked = trainer.linked !== false; // default true
+
+  // Find linked rival variants: same tag prefix, AND not individually unlinked
   const tagPrefix = trainer.tag && trainer.tag.includes('-')
     ? trainer.tag.substring(0, trainer.tag.lastIndexOf('-')) : null;
   const linkedTrainers = tagPrefix && allTrainers
-    ? allTrainers.filter(t => t.index !== trainer.index && t.tag && t.tag.startsWith(tagPrefix + '-'))
+    ? allTrainers.filter(t => t.index !== trainer.index && t.tag && t.tag.startsWith(tagPrefix + '-') && t.linked !== false)
     : [];
 
   function handleRandomize(e) {
@@ -104,16 +106,19 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
     const picks = trainer.pokemon.map(() => pool[Math.floor(Math.random() * pool.length)]);
     trainer.pokemon.forEach((poke, i) => {
       const moves = getDefaultMoveset(picks[i].id, poke.level);
-      onPokemonChange(trainerIndex, i, { ...poke, pokemonName: picks[i].name, isRandom: false, moves });
+      const newPoke = { ...poke, pokemonName: picks[i].name, isRandom: false, moves };
+      onPokemonChange(trainerIndex, i, newPoke);
+      propagateToLinked(i, newPoke);
     });
-    if (linked && linkedTrainers.length > 0) {
-      for (const lt of linkedTrainers) {
-        lt.pokemon.forEach((poke, i) => {
-          if (i < picks.length) {
-            const moves = getDefaultMoveset(picks[i].id, poke.level);
-            onPokemonChange(lt.index, i, { ...poke, pokemonName: picks[i].name, isRandom: false, moves });
-          }
-        });
+  }
+
+  // Propagate a full Pokemon change to linked variants
+  function propagateToLinked(pokeIdx, newPoke) {
+    if (!linked || linkedTrainers.length === 0) return;
+    for (const lt of linkedTrainers) {
+      const ltPoke = lt.pokemon[pokeIdx];
+      if (ltPoke) {
+        onPokemonChange(lt.index, pokeIdx, { ...newPoke, slotNum: ltPoke.slotNum });
       }
     }
   }
@@ -122,34 +127,18 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
     const poke = trainer.pokemon[pokeIdx];
     const pokemonId = getPokemonId(name);
     const moves = pokemonId ? getDefaultMoveset(pokemonId, poke.level) : null;
-    onPokemonChange(trainerIndex, pokeIdx, {
-      ...poke,
-      pokemonName: name,
-      isRandom: !name,
-      moves,
-    });
-    // Propagate species to linked variants (keep their levels)
-    if (linked && linkedTrainers.length > 0) {
-      for (const lt of linkedTrainers) {
-        const ltPoke = lt.pokemon[pokeIdx];
-        if (ltPoke) {
-          const ltMoves = pokemonId ? getDefaultMoveset(pokemonId, ltPoke.level) : null;
-          onPokemonChange(lt.index, pokeIdx, {
-            ...ltPoke,
-            pokemonName: name,
-            isRandom: !name,
-            moves: ltMoves,
-          });
-        }
-      }
-    }
+    const newPoke = { ...poke, pokemonName: name, isRandom: !name, moves };
+    onPokemonChange(trainerIndex, pokeIdx, newPoke);
+    propagateToLinked(pokeIdx, newPoke);
   }
 
   function handleLevelChange(pokeIdx, e) {
     const val = parseInt(e.target.value);
     if (!isNaN(val) && val >= 1 && val <= 100) {
       const poke = trainer.pokemon[pokeIdx];
-      onPokemonChange(trainerIndex, pokeIdx, { ...poke, level: val });
+      const newPoke = { ...poke, level: val };
+      onPokemonChange(trainerIndex, pokeIdx, newPoke);
+      propagateToLinked(pokeIdx, newPoke);
     }
   }
 
@@ -180,7 +169,7 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
                 {' '}
                 <a href="#" className={`trainer-link-btn ${linked ? 'linked' : ''}`} onClick={(e) => {
                   e.preventDefault();
-                  setLinked(!linked);
+                  onDialogueChange && onDialogueChange(trainerIndex, 'linked', !linked);
                 }} title={linked ? 'Linked: changes apply to all variants' : 'Unlinked: changes only apply to this variant'}>
                   {linked ? '[Linked]' : '[Unlinked]'}
                 </a>
@@ -239,7 +228,10 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
                 trainerIndex={trainerIndex}
                 onPokemonNameChange={handlePokemonNameChange}
                 onLevelChange={handleLevelChange}
-                onPokemonChange={onPokemonChange}
+                onPokemonChange={(tIdx, pIdx, newPoke) => {
+                  onPokemonChange(tIdx, pIdx, newPoke);
+                  if (tIdx === trainerIndex) propagateToLinked(pIdx, newPoke);
+                }}
               />;
             })}
           </div>
