@@ -422,6 +422,9 @@ hr {
   margin-bottom: 2px;
 }
 
+.trainer-link-btn { font-size: 0.85em; }
+.trainer-link-btn.linked { color: #2a2; font-weight: bold; }
+
 .trainer-name-input {
   font-weight: bold;
   font-size: 1em;

@@ -286,6 +286,7 @@ export default function LocationCarousel({ areas, trainers, fieldItems, onSlotCh
                 key={trainer.index}
                 trainer={trainer}
                 trainerIndex={trainer.index}
+                allTrainers={trainers}
                 onPokemonChange={onTrainerPokemonChange}
                 onDialogueChange={onTrainerDialogueChange}
               />

@@ -81,22 +81,41 @@ function joinPages(pages) {
   return pages.map(page => page.replace(/\n/g, '\\n')).join('\\p');
 }
 
-export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, onDialogueChange }) {
+export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPokemonChange, onDialogueChange }) {
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [linked, setLinked] = useState(true);
   const tagLabel = trainer.tag ? ` [${trainer.tag}]` : '';
   const spriteUrl = getTrainerSpriteUrl(trainer.classId);
   const globalFilters = usePokemonFilters();
+
+  // Find linked rival variants: same tag prefix (e.g. RIVAL1-1, RIVAL1-2, RIVAL1-0)
+  const tagPrefix = trainer.tag && trainer.tag.includes('-')
+    ? trainer.tag.substring(0, trainer.tag.lastIndexOf('-')) : null;
+  const linkedTrainers = tagPrefix && allTrainers
+    ? allTrainers.filter(t => t.index !== trainer.index && t.tag && t.tag.startsWith(tagPrefix + '-'))
+    : [];
 
   function handleRandomize(e) {
     e.preventDefault();
     e.stopPropagation();
     const pool = getFilteredPokemonList(globalFilters);
     if (pool.length === 0) return;
+    // Pick random species per slot, then apply to this + linked trainers
+    const picks = trainer.pokemon.map(() => pool[Math.floor(Math.random() * pool.length)]);
     trainer.pokemon.forEach((poke, i) => {
-      const randPoke = pool[Math.floor(Math.random() * pool.length)];
-      const moves = getDefaultMoveset(randPoke.id, poke.level);
-      onPokemonChange(trainerIndex, i, { ...poke, pokemonName: randPoke.name, isRandom: false, moves });
+      const moves = getDefaultMoveset(picks[i].id, poke.level);
+      onPokemonChange(trainerIndex, i, { ...poke, pokemonName: picks[i].name, isRandom: false, moves });
     });
+    if (linked && linkedTrainers.length > 0) {
+      for (const lt of linkedTrainers) {
+        lt.pokemon.forEach((poke, i) => {
+          if (i < picks.length) {
+            const moves = getDefaultMoveset(picks[i].id, poke.level);
+            onPokemonChange(lt.index, i, { ...poke, pokemonName: picks[i].name, isRandom: false, moves });
+          }
+        });
+      }
+    }
   }
 
   function handlePokemonNameChange(pokeIdx, name) {
@@ -109,6 +128,21 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
       isRandom: !name,
       moves,
     });
+    // Propagate species to linked variants (keep their levels)
+    if (linked && linkedTrainers.length > 0) {
+      for (const lt of linkedTrainers) {
+        const ltPoke = lt.pokemon[pokeIdx];
+        if (ltPoke) {
+          const ltMoves = pokemonId ? getDefaultMoveset(pokemonId, ltPoke.level) : null;
+          onPokemonChange(lt.index, pokeIdx, {
+            ...ltPoke,
+            pokemonName: name,
+            isRandom: !name,
+            moves: ltMoves,
+          });
+        }
+      }
+    }
   }
 
   function handleLevelChange(pokeIdx, e) {
@@ -141,6 +175,17 @@ export default function TrainerEditor({ trainer, trainerIndex, onPokemonChange, 
             <span className="trainer-tag">{tagLabel}</span>
             {' '}
             <a href="#" onClick={handleRandomize}>[Randomize]</a>
+            {linkedTrainers.length > 0 && (
+              <>
+                {' '}
+                <a href="#" className={`trainer-link-btn ${linked ? 'linked' : ''}`} onClick={(e) => {
+                  e.preventDefault();
+                  setLinked(!linked);
+                }} title={linked ? 'Linked: changes apply to all variants' : 'Unlinked: changes only apply to this variant'}>
+                  {linked ? '[Linked]' : '[Unlinked]'}
+                </a>
+              </>
+            )}
             {onDialogueChange && (
               <>
                 {' '}
