@@ -100,10 +100,10 @@ function buildMap(trainers) {
     }
   }
 
-  // 2. Apply tag-based locations for unmapped trainers
+  // 2. Apply tag-based locations — tags override ROM locations since
+  //    the ROM extraction can produce false positives for tagged trainers
   if (trainers) {
     for (const t of trainers) {
-      if (map[t.index]) continue;
       if (!t.tag) continue;
 
       if (TAG_LOCATIONS[t.tag]) {
