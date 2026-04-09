@@ -150,6 +150,11 @@ export default function TrainerNamesEditor({ classNames, onChange, pokemonEdits,
               const changed = isPokemonNameChanged(pk.id);
               return (
                 <div key={pk.id} className={`trainer-name-row ${changed ? 'trainer-name-changed' : ''}`}>
+                  <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pk.id}.png`}
+                    alt="" className="pokemon-name-sprite"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
                   <span className="pokemon-name-id">#{pk.id}</span>
                   <input type="text" className="trainer-name-class-input" maxLength={10}
                     value={getPokemonName(pk.id)}
