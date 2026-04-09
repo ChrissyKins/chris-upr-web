@@ -190,16 +190,17 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, clas
               type="text"
               className="trainer-class-input"
               value={trainer.classPrefix}
+              maxLength={classEntry?.maxLen || 10}
               onBlur={(e) => handleClassPrefixCommit(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
               onChange={(e) => {
-                // Local update only — onBlur triggers the class-wide change with confirmation
                 onDialogueChange && onDialogueChange(trainerIndex, 'classPrefix', e.target.value);
               }}
             />{' '}<input
               type="text"
               className="trainer-name-input"
               value={trainer.name}
+              maxLength={7}
               onChange={(e) => onDialogueChange && onDialogueChange(trainerIndex, 'name', e.target.value)}
             /></b>
             <span className="trainer-tag">{tagLabel}</span>

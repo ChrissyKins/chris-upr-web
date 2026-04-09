@@ -119,6 +119,7 @@ export default function TrainerNamesEditor({ classNames, onChange, pokemonEdits,
                     <span className="trainer-sprite-edit-hint">change</span>
                   </div>
                   <input type="text" className="trainer-name-class-input" value={cls.name}
+                    maxLength={cls.maxLen || 10}
                     onChange={e => handleNameChange(cls.id, e.target.value)} />
                   {changed && <a href="#" className="trainer-name-reset"
                     onClick={e => { e.preventDefault(); handleReset(cls.id); }}>(reset)</a>}
