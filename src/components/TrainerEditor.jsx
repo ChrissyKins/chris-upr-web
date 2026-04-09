@@ -81,12 +81,16 @@ function joinPages(pages) {
   return pages.map(page => page.replace(/\n/g, '\\n')).join('\\p');
 }
 
-export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPokemonChange, onDialogueChange }) {
+export default function TrainerEditor({ trainer, trainerIndex, allTrainers, classNames, onPokemonChange, onDialogueChange, onClassNamesChange }) {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const [spritePicker, setSpritePicker] = useState(false);
   const tagLabel = trainer.tag ? ` [${trainer.tag}]` : '';
-  const spriteUrl = getTrainerSpriteUrl(trainer.classId);
   const globalFilters = usePokemonFilters();
+
+  // Resolve sprite: check classNames extras for spriteFrom override
+  const classEntry = classNames ? classNames.find(c => c.id === trainer.classId) : null;
+  const spriteClassId = (classEntry && classEntry.spriteFrom != null) ? classEntry.spriteFrom : trainer.classId;
+  const spriteUrl = getTrainerSpriteUrl(spriteClassId);
 
   // Linked state is stored on the trainer object so other trainers can see it
   const linked = trainer.linked !== false; // default true
@@ -222,11 +226,14 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
             <div className="trainer-sprite-picker">
               {getAllSpriteNames().map(s => (
                 <img key={s.id} src={s.url} alt={s.name} title={s.name}
-                  className={`sprite-picker-option ${trainer.classId === s.id ? 'selected' : ''}`}
+                  className={`sprite-picker-option ${spriteClassId === s.id ? 'selected' : ''}`}
                   onClick={() => {
-                    if (s.id === trainer.classId) { setSpritePicker(false); return; }
+                    const newSpriteFrom = (s.id === trainer.classId) ? null : s.id;
+                    if (newSpriteFrom === (classEntry?.spriteFrom ?? null)) { setSpritePicker(false); return; }
                     if (classCount > 1 && !window.confirm(`This will change the sprite for all ${classCount} ${trainer.classPrefix} trainers. Continue?`)) return;
-                    // Sprite swapping is handled via the Names tab extras — notify via classPrefix change cycle
+                    if (onClassNamesChange && classNames) {
+                      onClassNamesChange(classNames.map(c => c.id === trainer.classId ? { ...c, spriteFrom: newSpriteFrom } : c));
+                    }
                     setSpritePicker(false);
                   }}
                   onError={(e) => { e.target.style.display = 'none'; }}

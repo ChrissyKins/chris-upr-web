@@ -543,11 +543,13 @@ function App() {
               areas={areas}
               trainers={trainers}
               fieldItems={getExtraState('fieldItems', getDefaultFieldItems)}
+              classNames={getExtraState('classNames', getDefaultClassNames)}
               onSlotChange={handleSlotChange}
               onResetArea={handleResetArea}
               onTrainerPokemonChange={handleTrainerPokemonChange}
               onTrainerDialogueChange={handleTrainerDialogueChange}
               onFieldItemChange={handleFieldItemChange}
+              onClassNamesChange={(val) => setExtraState('classNames', val)}
             />
           </>
         )}
