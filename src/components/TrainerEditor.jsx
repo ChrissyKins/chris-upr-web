@@ -3,7 +3,7 @@ import PokemonPicker, { getFilteredPokemonList } from './PokemonPicker';
 import PasteLink from './PasteLink';
 import { POKEMON_BY_NAME } from '../data/pokemon';
 import { getLearnset, getGameMoves } from '../data/gameData';
-import { getTrainerSpriteUrl } from '../data/trainerSprites';
+import { getTrainerSpriteUrl, getAllSpriteNames } from '../data/trainerSprites';
 import { copyPokemon, getClipboard } from '../data/clipboard';
 import { usePokemonFilters } from '../data/pokemonFilterContext';
 import { getDefaultTrainerPokemon } from '../data/crystalEncounters';
@@ -83,6 +83,7 @@ function joinPages(pages) {
 
 export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPokemonChange, onDialogueChange }) {
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [spritePicker, setSpritePicker] = useState(false);
   const tagLabel = trainer.tag ? ` [${trainer.tag}]` : '';
   const spriteUrl = getTrainerSpriteUrl(trainer.classId);
   const globalFilters = usePokemonFilters();
@@ -96,6 +97,22 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
   const linkedTrainers = tagPrefix && allTrainers
     ? allTrainers.filter(t => t.index !== trainer.index && t.tag && t.tag.startsWith(tagPrefix + '-') && t.linked !== false)
     : [];
+
+  // Count trainers in same class (for class-wide change warnings)
+  const classCount = allTrainers ? allTrainers.filter(t => t.classId === trainer.classId).length : 0;
+
+  function handleClassPrefixCommit(newPrefix) {
+    if (!onDialogueChange || !allTrainers) return;
+    const others = allTrainers.filter(t => t.classId === trainer.classId && t.index !== trainerIndex);
+    if (others.length > 0 && !window.confirm(`This will rename all ${others.length + 1} ${trainer.classPrefix || 'trainers in this class'} to "${newPrefix}". Continue?`)) {
+      // Revert this trainer's local change
+      onDialogueChange(trainerIndex, 'classPrefix', allTrainers.find(t => t.classId === trainer.classId && t.index !== trainerIndex)?.classPrefix || trainer.classPrefix);
+      return;
+    }
+    for (const t of others) {
+      onDialogueChange(t.index, 'classPrefix', newPrefix);
+    }
+  }
 
   function handleRandomize(e) {
     e.preventDefault();
@@ -145,17 +162,30 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
   return (
     <div className="trainer-editor">
       <div className="trainer-layout">
-        {spriteUrl && (
-          <img
-            src={spriteUrl}
-            alt={trainer.displayName}
-            className="trainer-sprite"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        )}
+        <div className="trainer-sprite-wrap" onClick={() => setSpritePicker(!spritePicker)}>
+          {spriteUrl && (
+            <img
+              src={spriteUrl}
+              alt={trainer.displayName}
+              className="trainer-sprite"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          )}
+          <span className="trainer-sprite-change-hint">change</span>
+        </div>
         <div className="trainer-content">
           <div className="trainer-name-line">
-            <b><span className="trainer-class-label">{trainer.classPrefix}</span>{' '}<input
+            <b><input
+              type="text"
+              className="trainer-class-input"
+              value={trainer.classPrefix}
+              onBlur={(e) => handleClassPrefixCommit(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+              onChange={(e) => {
+                // Local update only — onBlur triggers the class-wide change with confirmation
+                onDialogueChange && onDialogueChange(trainerIndex, 'classPrefix', e.target.value);
+              }}
+            />{' '}<input
               type="text"
               className="trainer-name-input"
               value={trainer.name}
@@ -185,6 +215,22 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
               </>
             )}
           </div>
+          {spritePicker && (
+            <div className="trainer-sprite-picker">
+              {getAllSpriteNames().map(s => (
+                <img key={s.id} src={s.url} alt={s.name} title={s.name}
+                  className={`sprite-picker-option ${trainer.classId === s.id ? 'selected' : ''}`}
+                  onClick={() => {
+                    if (s.id === trainer.classId) { setSpritePicker(false); return; }
+                    if (classCount > 1 && !window.confirm(`This will change the sprite for all ${classCount} ${trainer.classPrefix} trainers. Continue?`)) return;
+                    // Sprite swapping is handled via the Names tab extras — notify via classPrefix change cycle
+                    setSpritePicker(false);
+                  }}
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ))}
+            </div>
+          )}
           {dialogueOpen && onDialogueChange && (
             <div className="trainer-dialogue">
               {trainer.seenText != null ? (

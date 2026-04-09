@@ -286,8 +286,8 @@ function App() {
       const idx = next.findIndex(t => t.index === trainerIndex);
       if (idx < 0) return prev;
       const updated = { ...next[idx], [field]: value };
-      if (field === 'name') {
-        updated.displayName = `${updated.classPrefix} ${value}`.trim();
+      if (field === 'name' || field === 'classPrefix') {
+        updated.displayName = `${field === 'classPrefix' ? value : updated.classPrefix} ${field === 'name' ? value : updated.name}`.trim();
       }
       next[idx] = updated;
       return next;
