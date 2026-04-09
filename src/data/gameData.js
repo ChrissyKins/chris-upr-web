@@ -111,8 +111,11 @@ export function getGameTrainers() {
     // Filter out phone rematches: within each class, keep only the first
     // trainer of each name (lowest index = base team). Rematches are
     // higher-level teams for the same NPC, only accessible via Pokegear.
+    // Tagged trainers (rivals, gym leaders) are always kept — their tags
+    // distinguish different encounters even when name is the same.
     const seen = new Set();
     _trainers = _trainers.filter(t => {
+      if (t.tag) return true; // tagged trainers are unique encounters
       const key = t.classId + ':' + t.name;
       if (seen.has(key)) return false;
       seen.add(key);

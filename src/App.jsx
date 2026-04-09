@@ -21,7 +21,7 @@ import { getDefaultMoveset } from './components/TrainerEditor';
 import './App.css';
 
 const SAVE_KEY = 'pkcrystal_editor_save';
-const SAVE_VERSION = 11; // v11: filter phone rematches from trainer list
+const SAVE_VERSION = 12; // v12: keep tagged trainers (rivals) in dedup
 
 function loadSavedState() {
   try {
@@ -83,10 +83,12 @@ function loadSavedState() {
         return t;
       });
     }
-    if ((saved.version || 1) < 11) {
+    if ((saved.version || 1) < 12) {
       // Filter out phone rematches (duplicate class+name entries)
+      // but keep tagged trainers (rivals, gym leaders)
       const seen = new Set();
       saved.trainers = saved.trainers.filter(t => {
+        if (t.tag) return true;
         const key = (t.classId != null ? t.classId : '') + ':' + t.name;
         if (seen.has(key)) return false;
         seen.add(key);
