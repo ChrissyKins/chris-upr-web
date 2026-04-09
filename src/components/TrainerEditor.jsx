@@ -104,9 +104,12 @@ export default function TrainerEditor({ trainer, trainerIndex, allTrainers, onPo
   function handleClassPrefixCommit(newPrefix) {
     if (!onDialogueChange || !allTrainers) return;
     const others = allTrainers.filter(t => t.classId === trainer.classId && t.index !== trainerIndex);
-    if (others.length > 0 && !window.confirm(`This will rename all ${others.length + 1} ${trainer.classPrefix || 'trainers in this class'} to "${newPrefix}". Continue?`)) {
-      // Revert this trainer's local change
-      onDialogueChange(trainerIndex, 'classPrefix', allTrainers.find(t => t.classId === trainer.classId && t.index !== trainerIndex)?.classPrefix || trainer.classPrefix);
+    // If no other trainers differ, nothing to propagate
+    const needsUpdate = others.some(t => t.classPrefix !== newPrefix);
+    if (!needsUpdate) return;
+    if (!window.confirm(`This will rename all ${others.length + 1} ${others[0]?.classPrefix || 'trainers in this class'} to "${newPrefix}". Continue?`)) {
+      // Revert this trainer's local change to match others
+      onDialogueChange(trainerIndex, 'classPrefix', others[0]?.classPrefix || newPrefix);
       return;
     }
     for (const t of others) {
